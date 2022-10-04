@@ -63,7 +63,7 @@ public class Graph
                 degrees[v] = 0;
 
             degrees[w]++;
-            degrees[w]++;
+            degrees[v]++;
         }
     }
 
