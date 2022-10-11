@@ -12,6 +12,7 @@ public class Graph
     public List<List<Integer>> adjacencyList;
     public List<List<Integer>> edgeList;
     public Integer[] degrees;
+    public List<List<Node>> edgeNodes;
 
     public Graph()
     {
@@ -20,6 +21,7 @@ public class Graph
   
         adjacencyList = new ArrayList<>(vertices);
         edgeList = new ArrayList<>(vertices);
+        edgeNodes = new ArrayList<>(vertices);
 
         for (int i = 0; i < vertices; i++)
             adjacencyList.add(new ArrayList<Integer>());
@@ -46,6 +48,10 @@ public class Graph
         adjacencyList.get(v).add(w);
         adjacencyList.get(w).add(v);
         edgeList.add(Arrays.asList(v, w));
+
+        var nodeV = new Node(v, vertices);
+        var nodeW = new Node(w, vertices);
+        edgeNodes.add(Arrays.asList(nodeV, nodeW));
     }
 
     void calculateDegrees()
@@ -94,6 +100,15 @@ public class Graph
         for (int i = 0; i < this.edgeList.size(); i++) {
             var list = this.edgeList.get(i);
             System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
+        }
+    }
+
+    void printEdges() 
+    {
+        System.out.println("The generated edges from the random graph :");
+        for (int i = 0; i < this.edgeNodes.size(); i++) {
+            var list = this.edgeNodes.get(i);
+            System.out.println("[ " + list.get(0).id + " , " + list.get(1).id + " ]");
         }
     }
 
