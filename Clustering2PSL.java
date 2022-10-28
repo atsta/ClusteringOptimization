@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;  
 import java.io.IOException;  
 import java.util.*; 
+import java.time.Duration;
+import java.time.Instant;
 
 public class Clustering2PSL  
 {   
@@ -14,6 +16,7 @@ public class Clustering2PSL
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 0;
+    public static int totalCommunities = 0;
 
     public static void main(String args[])   
     {   
@@ -24,10 +27,19 @@ public class Clustering2PSL
 
         // randomGraph.calculateDegrees();
         // randomGraph.printEdgeDegrees();
+        Instant start = Instant.now();
+
         calcDegrees();
         printEdgeDegrees();
         findCommunities();
         printCommunities();
+        findTotalCommunitites();
+        System.out.println("Total " + totalCommunities + " found!");
+        
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).toMillis();    
+
+        System.out.println("Elapsed Time in millis: "+ timeElapsed);
     }   
 
     private static void findCommunities()
@@ -99,9 +111,20 @@ public class Clustering2PSL
         {
             if (communities[i] == null)
                 continue;
-            System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
-            if (i > 999)
-                break;
+            while (i < VERTICES_COUNT - 1 && communities[i] == communities[i + 1])
+                i++;
+            if (i < 999)
+                System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+        }
+    }
+
+    private static void findTotalCommunitites() 
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            if (communityVolumes[i] == null || communityVolumes[i] == 0)
+                continue;
+            totalCommunities++;
         }
     }
 
