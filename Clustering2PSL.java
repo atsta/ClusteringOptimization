@@ -5,11 +5,15 @@ import java.util.*;
 
 public class Clustering2PSL  
 {   
-    final static int COMM_BOUND = 5;
+    final static int NUM_PARTITIONS = 5000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static List<List<Integer>> edgeList;
     public static Integer[] degrees;
+    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
+    public static Integer[] communities = new Integer[VERTICES_COUNT];
+    public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
+    public static int maxCommunityId = 0;
 
     public static void main(String args[])   
     {   
@@ -22,12 +26,12 @@ public class Clustering2PSL
         // randomGraph.printEdgeDegrees();
         calcDegrees();
         printEdgeDegrees();
-        // findCommunities(randomGraph);
+        findCommunities();
+        printCommunities();
     }   
 
-    private static void readEdgeList()
+    private static void findCommunities()
     {
-        edgeList = new ArrayList<>(EDGES_COUNT);
         String line = "";  
         String splitBy = ",";  
         try   
@@ -36,13 +40,69 @@ public class Clustering2PSL
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
-                edgeList.add(Arrays.asList(Integer.parseInt(edge[0]),  Integer.parseInt(edge[1])));
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                findEdgeCommunity(w, v);
             }  
         }   
         catch (IOException e)   
         {  
             e.printStackTrace();  
         }   
+    }
+
+    public static void findEdgeCommunity(int u, int v)
+    {
+        if(communities[u] == null)
+        {
+            if (communityVolumes[maxCommunityId] == null)
+                communityVolumes[maxCommunityId] = 0;
+            communities[u] = maxCommunityId;
+            communityVolumes[maxCommunityId] += degrees[u];
+            maxCommunityId++;
+        }
+        if(communities[v] == null)
+        {
+            if (communityVolumes[maxCommunityId] == null)
+                communityVolumes[maxCommunityId] = 0;
+            communities[v] = maxCommunityId;
+            communityVolumes[maxCommunityId] += degrees[v];
+            maxCommunityId++;
+        }
+
+        var volCommU = communityVolumes[communities[u]];
+        var volCommV = communityVolumes[communities[v]];
+
+        var trueVolCommU = volCommU - degrees[u];
+        var trueVolCommV = volCommV - degrees[v];
+
+        if((volCommU <= MAX_COM_VOLUME) && (volCommV <= MAX_COM_VOLUME))
+        {
+            if(trueVolCommU <= trueVolCommV && volCommV + degrees[u] <= MAX_COM_VOLUME)
+            {
+                communityVolumes[communities[u]] -= degrees[u];
+                communityVolumes[communities[v]] += degrees[u];
+                communities[u] = communities[v];
+            }
+            else if (trueVolCommV < trueVolCommU && volCommU + degrees[v] <= MAX_COM_VOLUME) 
+            {
+                communityVolumes[communities[v]] -= degrees[v];
+                communityVolumes[communities[u]] += degrees[v];
+                communities[v] = communities[u];
+            }
+        }
+    }
+
+    private static void printCommunities()
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            if (communities[i] == null)
+                continue;
+            System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+            if (i > 999)
+                break;
+        }
     }
 
     private static void initDegrees()
@@ -84,74 +144,6 @@ public class Clustering2PSL
             System.out.println(i + " -> " + degrees[i]);
             if (i > 999)
                 break;
-        }
-    }
-
-    private static void printEdgeList() 
-    {
-        System.out.println("The input edge list (top 1000 edges)");
-        for (int i = 0; i < edgeList.size(); i++) {
-            var list = edgeList.get(i);
-            System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
-            if (i > 999)
-                break;
-        }
-    }
-
-    public static void findCommunities(Graph randomGraph)
-    {
-        Integer[] communities = new Integer[randomGraph.vertices];
-        Integer[] communityVolumes = new Integer[randomGraph.vertices];
-        int maxCommunityId = 0;
-        
-        for (int i = 0; i < randomGraph.edgeList.size(); i++) 
-        {
-            var edge = randomGraph.edgeList.get(i);
-            var u = edge.get(0);
-            var v = edge.get(1);
-
-            if(communities[u] == null)
-            {
-                if (communityVolumes[maxCommunityId] == null)
-                    communityVolumes[maxCommunityId] = 0;
-                communities[u] = maxCommunityId;
-                communityVolumes[maxCommunityId] += randomGraph.degrees[u];
-                maxCommunityId++;
-            }
-            if(communities[v] == null)
-            {
-                if (communityVolumes[maxCommunityId] == null)
-                    communityVolumes[maxCommunityId] = 0;
-                communities[v] = maxCommunityId;
-                communityVolumes[maxCommunityId] += randomGraph.degrees[v];
-                maxCommunityId++;
-            }
-
-            var volCommU = communityVolumes[communities[u]];
-            var volCommV = communityVolumes[communities[v]];
-
-            var trueVolCommU = volCommU - randomGraph.degrees[u];
-            var trueVolCommV = volCommV - randomGraph.degrees[v];
-
-            if((volCommU <= COMM_BOUND) && (volCommV <= COMM_BOUND))
-            {
-                if(trueVolCommU <= trueVolCommV && volCommV + randomGraph.degrees[u] <= COMM_BOUND)
-                {
-                    communityVolumes[communities[u]] -= randomGraph.degrees[u];
-                    communityVolumes[communities[v]] += randomGraph.degrees[u];
-                    communities[u] = communities[v];
-                }
-                else if (trueVolCommV < trueVolCommU && volCommU + randomGraph.degrees[v] <= COMM_BOUND) 
-                {
-                    communityVolumes[communities[v]] -= randomGraph.degrees[v];
-                    communityVolumes[communities[u]] += randomGraph.degrees[v];
-                    communities[v] = communities[u];
-                }
-            }
-        }
-        for (int i = 0; i < randomGraph.vertices; i++) 
-        {
-            System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
         }
     }
 }  
