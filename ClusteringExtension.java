@@ -1,15 +1,24 @@
+import java.util.*;   
+
 public class ClusteringExtension
 {   
     final static int COMM_BOUND = 5;
+    final static int VERTICES_COUNT = 4000000;
+    final static int EDGES_COUNT = 117185084;
+    public static List<List<Integer>> edgeList;
+    public static Integer[] degrees;
 
     public static void main(String args[])   
     {   
-        Graph randomGraph = new Graph();
+        //Graph randomGraph = new Graph();
+        //randomGraph.printGraph();
+        //randomGraph.printEdges();
         
-        randomGraph.printGraph();
-        randomGraph.printEdges();
-
-        findCommunities(randomGraph);
+        //readEdgeList();
+        //printEdgeList();
+        calcDegrees();
+        printEdgeDegrees();
+        //findCommunities(randomGraph);
     }   
 
     public static void findCommunities(Graph randomGraph)
