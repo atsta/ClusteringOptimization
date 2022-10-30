@@ -7,12 +7,13 @@ import java.time.Instant;
 
 public class Clustering2PSL  
 {   
-    final static int NUM_PARTITIONS = 5000;
+    final static int NUM_PARTITIONS = 4;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static List<List<Integer>> edgeList;
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
+    public static Integer[] internalDegrees;
     public static double[] qualityScores = new double[VERTICES_COUNT];
     public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] communities = new Integer[VERTICES_COUNT];
@@ -171,9 +172,12 @@ public class Clustering2PSL
     private static void initExternalDegrees()
     {
         externalDegrees = new Integer[VERTICES_COUNT];
+        internalDegrees = new Integer[VERTICES_COUNT];
         for (int i = 0; i < VERTICES_COUNT; i++) 
         {
             externalDegrees[i] = 0;
+            internalDegrees[i] = 0;
+            qualityScores[i] = 0;
         }
     }
 
@@ -187,31 +191,52 @@ public class Clustering2PSL
 			externalDegrees[comU]++;
 			externalDegrees[comV]++;
         }
+        else
+        {
+            internalDegrees[comU]+=2;
+        }
     }
 
     public static void calculateQualityScores() 
     {
+        //conductance score
+
+        // for (int i = 0; i < VERTICES_COUNT; i++)
+        // {
+        //     if (communityVolumes[i] == null)
+        //         continue;
+
+        //     var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+        //     if (denominator != 0)
+        //     {
+        //         qualityScores[i] = (double) externalDegrees[i] / denominator;
+        //     }
+        // }
+
+        //coverage score 
+
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
-                var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
-                if (denominator != 0)
-                {
-                    double score = (double) externalDegrees[i] / denominator;
-                    qualityScores[i] = score;
-                }
+            var totalDegree = internalDegrees[i] + externalDegrees[i];
+            if (totalDegree != 0)
+            {
+                qualityScores[i] = (double) internalDegrees[i] / totalDegree;
+            }
         }
     }
 
     public static void printQualityScores()
     {
+        int k = 0;
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
             if (qualityScores[i] != 0)
             {
                 System.out.println("Quality score of community " + i + ":" + qualityScores[i]);
+                k++;
             }
-            if (i > 999)
-            break;
+            if (k > 999)
+                break;
         }
     }
 
