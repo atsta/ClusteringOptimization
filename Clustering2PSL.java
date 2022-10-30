@@ -227,8 +227,9 @@ public class Clustering2PSL
 
     public static void printQualityScores()
     {
-        int k = 0;
-        for (int i = 0; i < VERTICES_COUNT; i++)
+        Arrays.sort(qualityScores);
+        int k = 1;
+        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
         {
             if (qualityScores[i] != 0)
             {
