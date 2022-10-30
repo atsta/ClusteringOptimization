@@ -12,34 +12,51 @@ public class Clustering2PSL
     final static int EDGES_COUNT = 117185084;
     public static List<List<Integer>> edgeList;
     public static Integer[] degrees;
+    public static Integer[] externalDegrees;
+    public static double[] qualityScores = new double[VERTICES_COUNT];
     public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
-    public static int maxCommunityId = 0;
+    public static int maxCommunityId = 1;
     public static int totalCommunities = 0;
 
     public static void main(String args[])   
     {   
-        // Graph randomGraph = new Graph();
-        
-        // randomGraph.printGraph();
-        // randomGraph.printEdgeList();
+        System.out.println("Edges count: "+ EDGES_COUNT);
+        System.out.println("Vertices count: "+ VERTICES_COUNT);
+        System.out.println("Max comminity volume: "+ MAX_COM_VOLUME);
 
-        // randomGraph.calculateDegrees();
-        // randomGraph.printEdgeDegrees();
         Instant start = Instant.now();
 
+        Instant startDegreeCalc = Instant.now();
         calcDegrees();
-        printEdgeDegrees();
+        //printEdgeDegrees();
+        Instant finishDegreeCalc = Instant.now();
+        long timeElapsedDegreeCalc = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
+        System.out.println("Degree calculation: "+ timeElapsedDegreeCalc/1000 + " seconds");
+
+        Instant startCommunitiesCalc = Instant.now();
         findCommunities();
-        printCommunities();
-        findTotalCommunitites();
-        System.out.println("Total " + totalCommunities + " found!");
+        findCommunities();
+        //printCommunities();
+        findTotalCommunities();
+        Instant finishCommunitiesCalc = Instant.now();
+        long timeElapsedCommunitiesCalc = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
+        System.out.println("Communities detection: "+ timeElapsedCommunitiesCalc/1000 + " seconds");
+
+        System.out.println("Total " + totalCommunities + " communities found");
         
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();    
+        System.out.println("Total duration: "+ timeElapsed/1000 + " seconds");
 
-        System.out.println("Elapsed Time in millis: "+ timeElapsed);
+        double degreePercentage = (double) Math.round(timeElapsedDegreeCalc * 100 / timeElapsed);
+        double communityPercentage = (double) Math.round(timeElapsedCommunitiesCalc * 100 / timeElapsed);
+        System.out.println("Degree calculation in total duration: " + degreePercentage + " %");
+        System.out.println("Community detection in total duration: " + communityPercentage + " %");
+
+        evaluateCommunities();
+        printQualityScores();
     }   
 
     private static void findCommunities()
@@ -118,13 +135,83 @@ public class Clustering2PSL
         }
     }
 
-    private static void findTotalCommunitites() 
+    private static void findTotalCommunities() 
     {
         for (int i = 0; i < VERTICES_COUNT; i++) 
         {
-            if (communityVolumes[i] == null || communityVolumes[i] == 0)
+            if (communityVolumes[i] == null || communityVolumes[i] <= 0)
                 continue;
             totalCommunities++;
+        }
+    }
+
+    private static void evaluateCommunities() 
+    {
+        initExternalDegrees();
+        String line = "";  
+        String splitBy = ",";  
+        try   
+        {  
+            BufferedReader br = new BufferedReader(new FileReader("dataset.csv"));  
+            while ((line = br.readLine()) != null) 
+            {  
+                String[] edge = line.split(splitBy);   
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                calculateExternalDegree(w, v);
+            }  
+        }   
+        catch (IOException e)   
+        {  
+            e.printStackTrace();  
+        }   
+        calculateQualityScores();
+    }
+
+    private static void initExternalDegrees()
+    {
+        externalDegrees = new Integer[VERTICES_COUNT];
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            externalDegrees[i] = 0;
+        }
+    }
+
+    public static void calculateExternalDegree(int u, int v)
+    {
+        var comU = communities[u];
+		var comV = communities[v];
+
+		if (comU != comV)
+        {
+			externalDegrees[comU]++;
+			externalDegrees[comV]++;
+        }
+    }
+
+    public static void calculateQualityScores() 
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++)
+        {
+                var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+                if (denominator != 0)
+                {
+                    double score = (double) externalDegrees[i] / denominator;
+                    qualityScores[i] = score;
+                }
+        }
+    }
+
+    public static void printQualityScores()
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++)
+        {
+            if (qualityScores[i] != 0)
+            {
+                System.out.println("Quality score of community " + i + ":" + qualityScores[i]);
+            }
+            if (i > 999)
+            break;
         }
     }
 
