@@ -3,3 +3,4 @@ Vagrantfile
 *.class
 *.gz
 *.csv
+*.out

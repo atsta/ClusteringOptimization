@@ -10,7 +10,6 @@ public class Clustering2PSL
     final static int NUM_PARTITIONS = 4;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
-    public static List<List<Integer>> edgeList;
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
