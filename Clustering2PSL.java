@@ -37,7 +37,7 @@ public class Clustering2PSL
 
         Instant startCommunitiesCalc = Instant.now();
         findCommunities();
-        findCommunities();
+        //findCommunities();
         //printCommunities();
         findTotalCommunities();
         Instant finishCommunitiesCalc = Instant.now();
