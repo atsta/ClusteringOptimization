@@ -1,36 +1,27 @@
-import java.util.*;   
-
-public class Graph 
-{
+import java.util.*;
+import java.io.*;
+  
+public class Graph {
+  
     public int vertices;
     public int edges;
   
     final int MAX_LIMIT = 20;
-  
     Random random = new Random();
-
-    public List<List<Integer>> adjacencyList;
-    public List<List<Integer>> edgeList;
-    public Integer[] degrees;
-    public List<List<Node>> edgeNodes;
-
+    public List<List<Integer> > adjacencyList;
+  
     public Graph()
     {
         this.vertices = random.nextInt(MAX_LIMIT) + 1;
         this.edges = random.nextInt(computeMaxEdges(vertices)) + 1;
-  
         adjacencyList = new ArrayList<>(vertices);
-        edgeList = new ArrayList<>(vertices);
-        edgeNodes = new ArrayList<>(vertices);
-
         for (int i = 0; i < vertices; i++)
-            adjacencyList.add(new ArrayList<Integer>());
+            adjacencyList.add(new ArrayList<>());
   
         for (int i = 0; i < edges; i++) {
             int v = random.nextInt(vertices);
             int w = random.nextInt(vertices);
-
-            if((v == w ) || adjacencyList.get(v).contains(w)) {
+            if (adjacencyList.get(v).contains(w)) {
                 i = i - 1;
                 continue;
             }
@@ -46,39 +37,23 @@ public class Graph
     void addEdge(int v, int w)
     {
         adjacencyList.get(v).add(w);
-        adjacencyList.get(w).add(v);
-        edgeList.add(Arrays.asList(v, w));
-
-        var nodeV = new Node(v, vertices);
-        var nodeW = new Node(w, vertices);
-        edgeNodes.add(Arrays.asList(nodeV, nodeW));
+ 
+        if (v != w)
+            adjacencyList.get(w).add(v);
     }
-
-    void calculateDegrees()
+  
+    public static void main(String[] args)
     {
-        degrees = new Integer[vertices];
-        for (int i = 0; i < edgeList.size(); i++) 
-        {
-            var list = edgeList.get(i);
-            int w = list.get(0);
-            if (degrees[w] == null)
-                degrees[w] = 0;
-            
-            int v = list.get(1);
-            if (degrees[v] == null)
-                degrees[v] = 0;
-
-            degrees[w]++;
-            degrees[v]++;
-        }
-    }
-
-    void printGraph() 
-    {
+        Graph randomGraph = new Graph();
+  
         System.out.println("The generated random graph :");
-        for (int i = 0; i < this.adjacencyList.size(); i++) {
+        for (int i = 0;
+             i < randomGraph.adjacencyList.size(); i++) {
             System.out.print(i + " -> { ");
-            var list = this.adjacencyList.get(i);
+  
+            List<Integer> list
+                = randomGraph.adjacencyList.get(i);
+  
             if (list.isEmpty())
                 System.out.print(" No adjacent vertices ");
             else {
@@ -90,33 +65,7 @@ public class Graph
                         System.out.print(" , ");
                 }
             }
-            System.out.println(" }");
-        }
-    }
-
-    void printEdgeList() 
-    {
-        System.out.println("The generated edge list from the random graph :");
-        for (int i = 0; i < this.edgeList.size(); i++) {
-            var list = this.edgeList.get(i);
-            System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
-        }
-    }
-
-    void printEdges() 
-    {
-        System.out.println("The generated edges from the random graph :");
-        for (int i = 0; i < this.edgeNodes.size(); i++) {
-            var list = this.edgeNodes.get(i);
-            System.out.println("[ " + list.get(0).id + " , " + list.get(1).id + " ]");
-        }
-    }
-
-    void printEdgeDegrees() 
-    {
-        System.out.println("The edge degrees from the random graph :");
-        for (int i = 0; i < this.degrees.length; i++) {
-            System.out.println(i + " -> " + this.degrees[i]);
+            System.out.println("}");
         }
     }
 }

@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-
 public class Node 
 {
     public int id;
