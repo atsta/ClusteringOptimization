@@ -1,12 +1,15 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
-import java.io.*;
   
 public class Graph {
   
     public int vertices;
     public int edges;
-  
-    final int MAX_LIMIT = 20;
+    public static List<List<Integer>> edgeList;
+    
+    final int MAX_LIMIT = 40;
     Random random = new Random();
     public List<List<Integer> > adjacencyList;
   
@@ -15,6 +18,7 @@ public class Graph {
         this.vertices = random.nextInt(MAX_LIMIT) + 1;
         this.edges = random.nextInt(computeMaxEdges(vertices)) + 1;
         adjacencyList = new ArrayList<>(vertices);
+        edgeList = new ArrayList<>(vertices);
         for (int i = 0; i < vertices; i++)
             adjacencyList.add(new ArrayList<>());
   
@@ -37,11 +41,39 @@ public class Graph {
     void addEdge(int v, int w)
     {
         adjacencyList.get(v).add(w);
- 
         if (v != w)
+        {
             adjacencyList.get(w).add(v);
+            edgeList.add(Arrays.asList(v, w));
+        }        
     }
   
+    static void printEdgeList() 
+    {
+        System.out.println("The generated edge list from the random graph :");
+        for (int i = 0; i < edgeList.size(); i++) {
+            var list = edgeList.get(i);
+            System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
+        }
+    }
+    
+    public static void writeEdgeListToCSV() throws IOException
+    {
+    	File csvFile = new File("small_dataset.csv");
+    	FileWriter fileWriter = new FileWriter(csvFile);
+    	
+    	for (int i = 0; i < edgeList.size(); i++) {
+    	    StringBuilder line = new StringBuilder();
+    	    var list = edgeList.get(i);
+	        line.append(list.get(0));  
+	        line.append(',');
+	        line.append(list.get(1));  
+    	    line.append("\n");
+    	    fileWriter.write(line.toString());
+    	}
+    	fileWriter.close();
+    }
+    
     public static void main(String[] args)
     {
         Graph randomGraph = new Graph();
@@ -67,5 +99,11 @@ public class Graph {
             }
             System.out.println("}");
         }
+        printEdgeList();
+        try {
+			writeEdgeListToCSV();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 }
