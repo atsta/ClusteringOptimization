@@ -8,8 +8,10 @@ import java.time.Instant;
 public class Clustering2PSL  
 {   
     final static int NUM_PARTITIONS = 4;
-    final static int VERTICES_COUNT = 4000000;
-    final static int EDGES_COUNT = 117185084;
+    //final static int VERTICES_COUNT = 4000000;
+    //final static int EDGES_COUNT = 117185084;
+    final static int VERTICES_COUNT = 40;
+    final static int EDGES_COUNT = 560;
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
@@ -19,7 +21,8 @@ public class Clustering2PSL
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
     public static int totalCommunities = 0;
-
+    public static String filename = "small_dataset.csv";
+    
     public static void main(String args[])   
     {   
         System.out.println("Edges count: "+ EDGES_COUNT);
@@ -38,8 +41,10 @@ public class Clustering2PSL
         Instant startCommunitiesCalc = Instant.now();
         findCommunities();
         findCommunities();
-        //printCommunities();
+        
         findTotalCommunities();
+        printCommunities();
+        
         Instant finishCommunitiesCalc = Instant.now();
         long timeElapsedCommunitiesCalc = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
         System.out.println("Communities detection: "+ timeElapsedCommunitiesCalc/1000 + " seconds");
@@ -65,7 +70,7 @@ public class Clustering2PSL
         String splitBy = ",";  
         try   
         {  
-            BufferedReader br = new BufferedReader(new FileReader("dataset.csv"));  
+            BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
@@ -152,7 +157,7 @@ public class Clustering2PSL
         String splitBy = ",";  
         try   
         {  
-            BufferedReader br = new BufferedReader(new FileReader("dataset.csv"));  
+            BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
@@ -256,7 +261,7 @@ public class Clustering2PSL
         String splitBy = ",";  
         try   
         {  
-            BufferedReader br = new BufferedReader(new FileReader("dataset.csv"));  
+            BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   

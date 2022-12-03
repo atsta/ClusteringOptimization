@@ -20,8 +20,10 @@ import java.util.Set;
 public class ClusteringExtension
 {   
     final static int NUM_PARTITIONS = 4;
-    final static int VERTICES_COUNT = 4000000;
-    final static int EDGES_COUNT = 117185084;
+    //final static int VERTICES_COUNT = 4000000;
+    //final static int EDGES_COUNT = 117185084;
+    final static int VERTICES_COUNT = 40;
+    final static int EDGES_COUNT = 560;
     final static int WINDOW_SIZE = 10000;
     public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
@@ -33,6 +35,7 @@ public class ClusteringExtension
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
     public static int totalCommunities = 0;
+    public static String filename = "small_dataset.csv";
 
     public static void main(String args[])   
     {   
@@ -44,10 +47,15 @@ public class ClusteringExtension
 
         initEdgeNodes();
         findCommunities();
-
+        findTotalCommunities();
+        printCommunities();
+        
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();    
         System.out.println("Total duration: "+ timeElapsed/1000 + " seconds");
+        
+        evaluateCommunities();
+        printQualityScores();
     }   
 
     private static void findCommunities()
@@ -57,7 +65,7 @@ public class ClusteringExtension
         try   
         {  
             var edgesProcessed = 0;
-            BufferedReader br = new BufferedReader(new FileReader("dataset.csv"));  
+            BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
@@ -147,4 +155,123 @@ public class ClusteringExtension
             nodes.add(new Node(i));
         }
     }
+    
+    private static void findTotalCommunities() 
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            if (communityVolumes[i] == null || communityVolumes[i] <= 0)
+                continue;
+            totalCommunities++;
+        }
+    }
+    
+    private static void printCommunities()
+    {
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            if (communities[i] == null)
+                continue;
+            while (i < VERTICES_COUNT - 1 && communities[i] == communities[i + 1])
+                i++;
+            if (i < 999)
+                System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+        }
+    }
+    
+    private static void evaluateCommunities() 
+    {
+        initExternalDegrees();
+        String line = "";  
+        String splitBy = ",";  
+        try   
+        {  
+            BufferedReader br = new BufferedReader(new FileReader(filename));  
+            while ((line = br.readLine()) != null) 
+            {  
+                String[] edge = line.split(splitBy);   
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                calculateExternalDegree(w, v);
+            }  
+        }   
+        catch (IOException e)   
+        {  
+            e.printStackTrace();  
+        }   
+        calculateQualityScores();
+    }
+
+    private static void initExternalDegrees()
+    {
+        externalDegrees = new Integer[VERTICES_COUNT];
+        internalDegrees = new Integer[VERTICES_COUNT];
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            externalDegrees[i] = 0;
+            internalDegrees[i] = 0;
+            qualityScores[i] = 0;
+        }
+    }
+
+    public static void calculateExternalDegree(int u, int v)
+    {
+        var comU = communities[u];
+		var comV = communities[v];
+
+		if (comU != comV)
+        {
+			externalDegrees[comU]++;
+			externalDegrees[comV]++;
+        }
+        else
+        {
+            internalDegrees[comU]+=2;
+        }
+    }
+
+    public static void calculateQualityScores() 
+    {
+        //conductance score
+
+        // for (int i = 0; i < VERTICES_COUNT; i++)
+        // {
+        //     if (communityVolumes[i] == null)
+        //         continue;
+
+        //     var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+        //     if (denominator != 0)
+        //     {
+        //         qualityScores[i] = (double) externalDegrees[i] / denominator;
+        //     }
+        // }
+
+        //coverage score 
+
+        for (int i = 0; i < VERTICES_COUNT; i++)
+        {
+            var totalDegree = internalDegrees[i] + externalDegrees[i];
+            if (totalDegree != 0)
+            {
+                qualityScores[i] = (double) internalDegrees[i] / totalDegree;
+            }
+        }
+    }
+
+    public static void printQualityScores()
+    {
+        Arrays.sort(qualityScores);
+        int k = 1;
+        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
+        {
+            if (qualityScores[i] != 0)
+            {
+                System.out.println("Quality score of community " + i + ":" + qualityScores[i]);
+                k++;
+            }
+            if (k > 999)
+                break;
+        }
+    }
+
 }  
