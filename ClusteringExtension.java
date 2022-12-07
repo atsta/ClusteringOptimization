@@ -19,13 +19,14 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
-    final static int NUM_PARTITIONS = 4;
+    final static int NUM_PARTITIONS = 10;
     //final static int VERTICES_COUNT = 4000000;
     //final static int EDGES_COUNT = 117185084;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
     final static int WINDOW_SIZE = 10000;
-    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
+    public static int MAX_COM_VOLUME = 40;
+    //public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static List<Node> nodes;
     public static Integer[] externalDegrees;
@@ -34,6 +35,7 @@ public class ClusteringExtension
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
+    public static List<Integer> validCommunities;
     public static int totalCommunities = 0;
     public static String filename = "small_dataset.csv";
 
@@ -47,7 +49,6 @@ public class ClusteringExtension
 
         initEdgeNodes();
         findCommunities();
-        findTotalCommunities();
         printCommunities();
         
         Instant finish = Instant.now();
@@ -94,46 +95,55 @@ public class ClusteringExtension
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 0;
             communities[u] = maxCommunityId;
-            nodeU.updateDegrees(maxCommunityId, 1);
+           // nodeU.updateDegrees(maxCommunityId, 1);
             communityVolumes[maxCommunityId] += 1;
             maxCommunityId++;
         }
+        var degreeUinCommU = nodeU.getDegrees(communities[u]);
+        nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
         if(communities[v] == null)
         {
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 0;
             communities[v] = maxCommunityId;
-            nodeV.updateDegrees(maxCommunityId, 1);
+          //  nodeV.updateDegrees(maxCommunityId, 1);
             communityVolumes[maxCommunityId] += 1;
             maxCommunityId++;
         }
+        var degreeVinCommV = nodeV.getDegrees(communities[v]);
+        nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
 
         var volCommU = communityVolumes[communities[u]];
         var volCommV = communityVolumes[communities[v]];
-
-        var degreeUinCommU = nodeU.getDegrees(communities[u]);
+        
         var degreeUinCommV = nodeU.getDegrees(communities[v]);
-
-        var degreeVinCommV = nodeV.getDegrees(communities[v]);
         var degreeVinCommU = nodeV.getDegrees(communities[u]);
 
         var trueVolCommU = volCommU - degreeUinCommU;
         var trueVolCommV = volCommV - degreeVinCommV;
 
-        if((volCommU <= MAX_COM_VOLUME) && (volCommV <= MAX_COM_VOLUME))
+        if((0 <= volCommU && volCommU < MAX_COM_VOLUME) && (0 <= volCommV && volCommV < MAX_COM_VOLUME))
         {
-            if(trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV <= MAX_COM_VOLUME)
+            if(0 <= trueVolCommU && trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV < MAX_COM_VOLUME)
             {
-                communityVolumes[communities[u]] -= degreeUinCommU;
-                communityVolumes[communities[v]]++;
+                communityVolumes[communities[u]]-=(degreeUinCommU-1);
+                communityVolumes[communities[v]]+=(degreeUinCommV+1);
                 nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
+                nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
+                
+                nodeU.updateDegrees(communities[u], degreeUinCommU - 1);
+                nodeV.updateDegrees(communities[u], degreeVinCommU - 1);
                 communities[u] = communities[v];
             }
-            else if (trueVolCommV < trueVolCommU && volCommU + degreeVinCommU <= MAX_COM_VOLUME) 
+            else if (0 <= trueVolCommV && trueVolCommV < trueVolCommU && volCommU + degreeVinCommU < MAX_COM_VOLUME) 
             {
-                communityVolumes[communities[v]] -= degreeVinCommV;                
-                communityVolumes[communities[u]]++;
+                communityVolumes[communities[v]]-=(degreeVinCommV-1);                
+                communityVolumes[communities[u]]+=(degreeVinCommU+1);
                 nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
+                nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
+
+                nodeV.updateDegrees(communities[v], degreeVinCommV - 1);
+                nodeU.updateDegrees(communities[v], degreeUinCommV - 1);
                 communities[v] = communities[u];
             }
         }
@@ -155,28 +165,23 @@ public class ClusteringExtension
             nodes.add(new Node(i));
         }
     }
-    
-    private static void findTotalCommunities() 
-    {
-        for (int i = 0; i < VERTICES_COUNT; i++) 
-        {
-            if (communityVolumes[i] == null || communityVolumes[i] <= 0)
-                continue;
-            totalCommunities++;
-        }
-    }
-    
+   
     private static void printCommunities()
     {
-        for (int i = 0; i < VERTICES_COUNT; i++) 
+    	validCommunities = new ArrayList<>();
+        for (int i = 1; i < VERTICES_COUNT; i++) 
         {
-            if (communities[i] == null)
+           if (communities[i] == null)
                 continue;
-            while (i < VERTICES_COUNT - 1 && communities[i] == communities[i + 1])
-                i++;
-            if (i < 999)
-                System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+           
+           if (validCommunities.contains(communities[i]))
+        	   continue;
+           
+           validCommunities.add(communities[i]);
+           totalCommunities++;
+           System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
         }
+        System.out.println("Total " + totalCommunities + " communities found");
     }
     
     private static void evaluateCommunities() 
@@ -273,5 +278,4 @@ public class ClusteringExtension
                 break;
         }
     }
-
 }  
