@@ -20,6 +20,7 @@ public class Clustering2PSL
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
+    public static List<Integer> validCommunities;
     public static int totalCommunities = 0;
     public static String filename = "small_dataset.csv";
     
@@ -42,14 +43,12 @@ public class Clustering2PSL
         findCommunities();
         findCommunities();
         
-        findTotalCommunities();
         printCommunities();
+        printCommunityMembers();
         
         Instant finishCommunitiesCalc = Instant.now();
         long timeElapsedCommunitiesCalc = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
         System.out.println("Communities detection: "+ timeElapsedCommunitiesCalc/1000 + " seconds");
-
-        System.out.println("Total " + totalCommunities + " communities found");
         
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();    
@@ -126,30 +125,44 @@ public class Clustering2PSL
             }
         }
     }
-
+    
     private static void printCommunities()
     {
-        for (int i = 0; i < VERTICES_COUNT; i++) 
+    	validCommunities = new ArrayList<>();
+        for (int i = 1; i < VERTICES_COUNT; i++) 
         {
-            if (communities[i] == null)
+           if (communities[i] == null)
                 continue;
-            while (i < VERTICES_COUNT - 1 && communities[i] == communities[i + 1])
-                i++;
-            if (i < 999)
-                System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+           
+           if (validCommunities.contains(communities[i]))
+        	   continue;
+           
+           validCommunities.add(communities[i]);
+           totalCommunities++;
+           System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
         }
+        System.out.println("Total " + totalCommunities + " communities found");
     }
-
-    private static void findTotalCommunities() 
+    
+    private static void printCommunityMembers()
     {
-        for (int i = 0; i < VERTICES_COUNT; i++) 
+        for (int i = 0; i < validCommunities.size() ; i++) 
         {
-            if (communityVolumes[i] == null || communityVolumes[i] <= 0)
-                continue;
-            totalCommunities++;
+        	var community = validCommunities.get(i);
+        	System.out.print("Members of community " + community  + " : ");
+        	List<Integer> members = new ArrayList<>();
+        	for (int j = 1; j < VERTICES_COUNT; j++) 
+        	{
+	    	   if (communities[j] == community)
+	    	   {
+	    		   System.out.print(j + ", ");
+	    		   members.add(j);
+	    	   }
+        	}
+        	System.out.println();
         }
     }
-
+    
     private static void evaluateCommunities() 
     {
         initExternalDegrees();

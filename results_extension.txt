@@ -1,0 +1,18 @@
+Total 4 communities found
+
+Community id: 12
+Size: 10
+Members: 1, 6, 9, 10, 11, 19, 22, 24, 31, 
+
+Community id: 2
+Size: 10
+Members: 2, 3, 5, 8, 18, 20, 26, 28, 33, 35, 
+
+Community id: 10
+Size: 10
+Members: 4, 7, 12, 13, 16, 23, 25, 30, 32, 34, 
+
+Community id: 5
+Size: 6
+Members: 14, 15, 17, 21, 27, 29, 
+

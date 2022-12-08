@@ -1,5 +1,6 @@
 import java.io.BufferedReader;  
-import java.io.FileReader;  
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;  
 import java.time.Duration;
 import java.time.Instant;
@@ -19,13 +20,13 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
-    final static int NUM_PARTITIONS = 10;
+    final static int NUM_PARTITIONS = 4;
     //final static int VERTICES_COUNT = 4000000;
     //final static int EDGES_COUNT = 117185084;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
     final static int WINDOW_SIZE = 10000;
-    public static int MAX_COM_VOLUME = 40;
+    public static int MAX_COM_VOLUME = VERTICES_COUNT/NUM_PARTITIONS;
     //public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static List<Node> nodes;
@@ -39,7 +40,7 @@ public class ClusteringExtension
     public static int totalCommunities = 0;
     public static String filename = "small_dataset.csv";
 
-    public static void main(String args[])   
+    public static void main(String args[]) throws IOException   
     {   
         System.out.println("Edges count: "+ EDGES_COUNT);
         System.out.println("Vertices count: "+ VERTICES_COUNT);
@@ -57,6 +58,8 @@ public class ClusteringExtension
         
         evaluateCommunities();
         printQualityScores();
+        
+        writeResultsToFile();
     }   
 
     private static void findCommunities()
@@ -95,24 +98,26 @@ public class ClusteringExtension
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 0;
             communities[u] = maxCommunityId;
-           // nodeU.updateDegrees(maxCommunityId, 1);
-            communityVolumes[maxCommunityId] += 1;
+            communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
+            nodeU.updateDegrees(communities[u],0);
         }
-        var degreeUinCommU = nodeU.getDegrees(communities[u]);
-        nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
         if(communities[v] == null)
         {
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 0;
             communities[v] = maxCommunityId;
-          //  nodeV.updateDegrees(maxCommunityId, 1);
-            communityVolumes[maxCommunityId] += 1;
+            communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
+            nodeV.updateDegrees(communities[v], 0);
         }
+        
+        if (communities[u] == communities[v])
+        	return;
+        
+        var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
-        nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
-
+       
         var volCommU = communityVolumes[communities[u]];
         var volCommV = communityVolumes[communities[v]];
         
@@ -126,24 +131,26 @@ public class ClusteringExtension
         {
             if(0 <= trueVolCommU && trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV < MAX_COM_VOLUME)
             {
-                communityVolumes[communities[u]]-=(degreeUinCommU-1);
-                communityVolumes[communities[v]]+=(degreeUinCommV+1);
-                nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
+            	communityVolumes[communities[u]]-=1;
+                communityVolumes[communities[v]]+=1;
+                //nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
                 nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
                 
-                nodeU.updateDegrees(communities[u], degreeUinCommU - 1);
+                //nodeU.updateDegrees(communities[u], degreeUinCommU - 1);
                 nodeV.updateDegrees(communities[u], degreeVinCommU - 1);
+                
                 communities[u] = communities[v];
             }
             else if (0 <= trueVolCommV && trueVolCommV < trueVolCommU && volCommU + degreeVinCommU < MAX_COM_VOLUME) 
             {
-                communityVolumes[communities[v]]-=(degreeVinCommV-1);                
-                communityVolumes[communities[u]]+=(degreeVinCommU+1);
-                nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
+            	communityVolumes[communities[v]]-=1;                
+                communityVolumes[communities[u]]+=1;
+                //nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
                 nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
 
-                nodeV.updateDegrees(communities[v], degreeVinCommV - 1);
+                //nodeV.updateDegrees(communities[v], degreeVinCommV - 1);
                 nodeU.updateDegrees(communities[v], degreeUinCommV - 1);
+                
                 communities[v] = communities[u];
             }
         }
@@ -179,9 +186,9 @@ public class ClusteringExtension
            
            validCommunities.add(communities[i]);
            totalCommunities++;
-           System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
+           //System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
         }
-        System.out.println("Total " + totalCommunities + " communities found");
+        //System.out.println("Total " + totalCommunities + " communities found");
     }
     
     private static void evaluateCommunities() 
@@ -235,6 +242,40 @@ public class ClusteringExtension
         }
     }
 
+    
+    public static void writeResultsToFile() throws IOException
+    {
+    	File txtfile = new File("results_extension.txt");
+    	FileWriter fileWriter = new FileWriter(txtfile);
+    	
+    	StringBuilder line = new StringBuilder();
+    	line.append("Total " + totalCommunities + " communities found");
+    	line.append("\n\n");
+    	fileWriter.write(line.toString());
+    	
+    	for (int i = 0; i < validCommunities.size() ; i++) 
+        {
+    		line = new StringBuilder();
+        	var community = validCommunities.get(i);
+        	line.append("Community id: " + community + "\n");
+        	line.append("Size: " + communityVolumes[community] + "\n");
+        	line.append("Members: ");
+        	List<Integer> members = new ArrayList<>();
+        	for (int j = 1; j < VERTICES_COUNT; j++) 
+        	{
+	    	   if (communities[j] == community)
+	    	   {
+	    		   line.append(j + ", ");
+	    		   members.add(j);
+	    	   }
+        	}
+    	    line.append("\n\n");
+    	    fileWriter.write(line.toString());
+        }
+    	fileWriter.close();
+    }
+    
+    
     public static void calculateQualityScores() 
     {
         //conductance score
