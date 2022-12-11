@@ -9,10 +9,15 @@ public class Graph {
     public int edges;
     public static List<List<Integer>> edgeList;
     
-    final int MAX_LIMIT = 40;
     Random random = new Random();
     public List<List<Integer> > adjacencyList;
   
+    final int MAX_LIMIT = 40;
+    public static String filename = "small_dataset.csv";
+    
+   /*final int MAX_LIMIT = 1000;
+    public static String filename = "small_dataset1.csv";*/
+    
     public Graph()
     {
         this.vertices = random.nextInt(MAX_LIMIT) + 1;
@@ -53,13 +58,13 @@ public class Graph {
         System.out.println("The generated edge list from the random graph :");
         for (int i = 0; i < edgeList.size(); i++) {
             var list = edgeList.get(i);
-            System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
+            //System.out.println("[ " + list.get(0) + " , " + list.get(1) + " ]");
         }
     }
     
     public static void writeEdgeListToCSV() throws IOException
     {
-    	File csvFile = new File("small_dataset.csv");
+    	File csvFile = new File(filename);
     	FileWriter fileWriter = new FileWriter(csvFile);
     	
     	for (int i = 0; i < edgeList.size(); i++) {
@@ -78,10 +83,10 @@ public class Graph {
     {
         Graph randomGraph = new Graph();
   
-        System.out.println("The generated random graph :");
+        //System.out.println("The generated random graph :");
         for (int i = 0;
              i < randomGraph.adjacencyList.size(); i++) {
-            System.out.print(i + " -> { ");
+           // System.out.print(i + " -> { ");
   
             List<Integer> list
                 = randomGraph.adjacencyList.get(i);
@@ -92,14 +97,14 @@ public class Graph {
                 int size = list.size();
                 for (int j = 0; j < size; j++) {
   
-                    System.out.print(list.get(j));
-                    if (j < size - 1)
-                        System.out.print(" , ");
+                    //System.out.print(list.get(j));
+                   // if (j < size - 1)
+                      //  System.out.print(" , ");
                 }
             }
-            System.out.println("}");
+            //System.out.println("}");
         }
-        printEdgeList();
+        //printEdgeList();
         try {
 			writeEdgeListToCSV();
 		} catch (IOException e) {

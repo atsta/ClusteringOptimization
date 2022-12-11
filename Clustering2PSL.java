@@ -1,5 +1,7 @@
-import java.io.BufferedReader;  
-import java.io.FileReader;  
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;  
 import java.util.*; 
 import java.time.Duration;
@@ -7,11 +9,18 @@ import java.time.Instant;
 
 public class Clustering2PSL  
 {   
+    /*final static int NUM_PARTITIONS = 1000;
+    final static int VERTICES_COUNT = 4000000;
+    final static int EDGES_COUNT = 117185084;
+    public static String filename = "dataset.csv";*/
+    
+    
     final static int NUM_PARTITIONS = 4;
-    //final static int VERTICES_COUNT = 4000000;
-    //final static int EDGES_COUNT = 117185084;
+    public static String filename = "small_dataset.csv";
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
+    
+    
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
@@ -22,9 +31,8 @@ public class Clustering2PSL
     public static int maxCommunityId = 1;
     public static List<Integer> validCommunities;
     public static int totalCommunities = 0;
-    public static String filename = "small_dataset.csv";
     
-    public static void main(String args[])   
+    public static void main(String args[]) throws IOException   
     {   
         System.out.println("Edges count: "+ EDGES_COUNT);
         System.out.println("Vertices count: "+ VERTICES_COUNT);
@@ -43,8 +51,8 @@ public class Clustering2PSL
         findCommunities();
         findCommunities();
         
-        printCommunities();
-        printCommunityMembers();
+        //printCommunities();
+       // printCommunityMembers();
         
         Instant finishCommunitiesCalc = Instant.now();
         long timeElapsedCommunitiesCalc = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
@@ -60,7 +68,9 @@ public class Clustering2PSL
         System.out.println("Community detection in total duration: " + communityPercentage + " %");
 
         evaluateCommunities();
-        printQualityScores();
+        //printQualityScores();
+        
+        writeResultsToFile();
     }   
 
     private static void findCommunities()
@@ -256,6 +266,55 @@ public class Clustering2PSL
             if (k > 999)
                 break;
         }
+    }
+    
+    private static void filterValidComnmunities()
+    {
+    	validCommunities = new ArrayList<>();
+        for (int i = 1; i < VERTICES_COUNT; i++) 
+        {
+           if (communities[i] == null)
+                continue;
+           
+           if (validCommunities.contains(communities[i]))
+        	   continue;
+           
+           validCommunities.add(communities[i]);
+           totalCommunities++;
+        }
+    }
+    
+    public static void writeResultsToFile() throws IOException
+    {
+    	filterValidComnmunities();
+    	File txtfile = new File("results_2psl.txt");
+    	FileWriter fileWriter = new FileWriter(txtfile);
+    	
+    	StringBuilder line = new StringBuilder();
+    	line.append("Total " + totalCommunities + " communities found");
+    	line.append("\n\n");
+    	fileWriter.write(line.toString());
+    	
+    	for (int i = 0; i < validCommunities.size() ; i++) 
+        {
+    		line = new StringBuilder();
+        	var community = validCommunities.get(i);
+        	line.append("Community id: " + community + "\n");
+        	line.append("Size: " + communityVolumes[community] + "\n");
+        	line.append("Members: ");
+        	List<Integer> members = new ArrayList<>();
+        	for (int j = 1; j < VERTICES_COUNT; j++) 
+        	{
+	    	   if (communities[j] == community)
+	    	   {
+	    		   line.append(j + ", ");
+	    		   members.add(j);
+	    	   }
+        	}
+    	    line.append("\n\n");
+    	    fileWriter.write(line.toString());
+        }
+    	fileWriter.close();
     }
 
     private static void initDegrees()

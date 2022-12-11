@@ -20,11 +20,19 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
+	/*
+    final static int NUM_PARTITIONS = 1000;
+    final static int VERTICES_COUNT = 4000000;
+    final static int EDGES_COUNT = 117185084;
+    public static String filename = "dataset.csv";
+    */
+	
     final static int NUM_PARTITIONS = 4;
-    //final static int VERTICES_COUNT = 4000000;
-    //final static int EDGES_COUNT = 117185084;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
+    public static String filename = "small_dataset.csv";
+    
+    
     final static int WINDOW_SIZE = 10000;
     public static int MAX_COM_VOLUME = VERTICES_COUNT/NUM_PARTITIONS;
     //public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
@@ -38,7 +46,7 @@ public class ClusteringExtension
     public static int maxCommunityId = 1;
     public static List<Integer> validCommunities;
     public static int totalCommunities = 0;
-    public static String filename = "small_dataset.csv";
+
 
     public static void main(String args[]) throws IOException   
     {   
@@ -100,7 +108,7 @@ public class ClusteringExtension
             communities[u] = maxCommunityId;
             communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
-            nodeU.updateDegrees(communities[u],0);
+            nodeU.updateDegrees(communities[u],1);
         }
         if(communities[v] == null)
         {
@@ -109,7 +117,7 @@ public class ClusteringExtension
             communities[v] = maxCommunityId;
             communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
-            nodeV.updateDegrees(communities[v], 0);
+            nodeV.updateDegrees(communities[v], 1);
         }
         
         if (communities[u] == communities[v])
