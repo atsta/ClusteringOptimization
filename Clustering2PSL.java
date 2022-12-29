@@ -29,8 +29,9 @@ public class Clustering2PSL
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
-    public static List<Integer> validCommunities;
+    public static Set<Integer> validCommunities;
     public static int totalCommunities = 0;
+    public static Map<Integer, List<String>> members; 
     
     public static void main(String args[]) throws IOException   
     {   
@@ -138,7 +139,7 @@ public class Clustering2PSL
     
     private static void printCommunities()
     {
-    	validCommunities = new ArrayList<>();
+    	validCommunities = new HashSet<>();
         for (int i = 1; i < VERTICES_COUNT; i++) 
         {
            if (communities[i] == null)
@@ -152,13 +153,14 @@ public class Clustering2PSL
            System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
         }
         System.out.println("Total " + totalCommunities + " communities found");
+        
+        
     }
     
     private static void printCommunityMembers()
     {
-        for (int i = 0; i < validCommunities.size() ; i++) 
+        for (Integer community : validCommunities)
         {
-        	var community = validCommunities.get(i);
         	System.out.print("Members of community " + community  + " : ");
         	List<Integer> members = new ArrayList<>();
         	for (int j = 1; j < VERTICES_COUNT; j++) 
@@ -270,7 +272,7 @@ public class Clustering2PSL
     
     private static void filterValidComnmunities()
     {
-    	validCommunities = new ArrayList<>();
+    	validCommunities = new HashSet<>();
         for (int i = 1; i < VERTICES_COUNT; i++) 
         {
            if (communities[i] == null)
@@ -281,6 +283,17 @@ public class Clustering2PSL
            
            validCommunities.add(communities[i]);
            totalCommunities++;
+        }
+        members = new HashMap<>();
+    	for (Integer community : validCommunities) 
+    	{
+    		members.put(community, new ArrayList<>());
+    	}
+    	for (Integer i = 1; i < VERTICES_COUNT; i++) 
+        {
+            if (communities[i] == null)
+                continue;
+    		members.get(communities[i]).add(i.toString());
         }
     }
     
@@ -294,26 +307,17 @@ public class Clustering2PSL
     	line.append("Total " + totalCommunities + " communities found");
     	line.append("\n\n");
     	fileWriter.write(line.toString());
-    	
-    	for (int i = 0; i < validCommunities.size() ; i++) 
-        {
+    
+    	for (Integer i : members.keySet()) 
+    	{
     		line = new StringBuilder();
-        	var community = validCommunities.get(i);
-        	line.append("Community id: " + community + "\n");
-        	line.append("Size: " + communityVolumes[community] + "\n");
+        	line.append("Community id: " + i + "\n");
+        	line.append("Size: " + communityVolumes[i] + "\n");
         	line.append("Members: ");
-        	List<Integer> members = new ArrayList<>();
-        	for (int j = 1; j < VERTICES_COUNT; j++) 
-        	{
-	    	   if (communities[j] == community)
-	    	   {
-	    		   line.append(j + ", ");
-	    		   members.add(j);
-	    	   }
-        	}
+        	line.append(String.join(",", members.get(i)));
     	    line.append("\n\n");
     	    fileWriter.write(line.toString());
-        }
+		}
     	fileWriter.close();
     }
 
