@@ -4,47 +4,43 @@ import java.io.FileWriter;
 import java.io.IOException;  
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;  
-import java.io.IOException;  
 import java.io.File;  
-import java.nio.file.Files;  
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Random;
+import java.util.Map;
 import java.util.Set;
 
 public class ClusteringExtension
 {   
-	/*
+	
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static String filename = "dataset.csv";
-    */
-	
+    final static int WINDOW_SIZE = 1000;
+    
+	/*
     final static int NUM_PARTITIONS = 4;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
+    final static int WINDOW_SIZE = 50;
     public static String filename = "small_dataset.csv";
+    */
     
-    
-    final static int WINDOW_SIZE = 10000;
     public static int MAX_COM_VOLUME = VERTICES_COUNT/NUM_PARTITIONS;
-    //public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
-    public static List<Node> nodes;
+    public static Node[] nodes;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
     public static double[] qualityScores = new double[VERTICES_COUNT];
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
-    public static List<Integer> validCommunities;
+    public static Set<Integer> validCommunities;
+    public static Map<Integer, List<String>> members; 
     public static int totalCommunities = 0;
 
 
@@ -58,14 +54,13 @@ public class ClusteringExtension
 
         initEdgeNodes();
         findCommunities();
-        printCommunities();
         
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();    
         System.out.println("Total duration: "+ timeElapsed/1000 + " seconds");
         
-        evaluateCommunities();
-        printQualityScores();
+        //evaluateCommunities();
+        //printQualityScores();
         
         writeResultsToFile();
     }   
@@ -77,17 +72,29 @@ public class ClusteringExtension
         try   
         {  
             var edgesProcessed = 0;
+            Instant start = Instant.now();
             BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
+                
                 findEdgeCommunity(w, v);
                 edgesProcessed++;
 
-                if (edgesProcessed%WINDOW_SIZE == 0)
+                /*
+                if (edgesProcessed % WINDOW_SIZE == 0)
                     pruneCommunities();
+                
+                if (edgesProcessed % 1000000 == 0)
+                {
+                    Instant finish = Instant.now();
+                    long timeElapsed = Duration.between(start, finish).toMillis();  
+               	 	System.out.println("Total "+ edgesProcessed + " edges processed in: " + timeElapsed/1000 + " seconds");
+               	 	start = Instant.now();
+                }
+                */
             }  
         }   
         catch (IOException e)   
@@ -98,9 +105,10 @@ public class ClusteringExtension
 
     public static void findEdgeCommunity(int u, int v)
     {
-        var nodeU = nodes.get(u);
-        var nodeV = nodes.get(v);
-
+    	
+        var nodeU = nodes[u];
+        var nodeV = nodes[v];
+        
         if(communities[u] == null)
         {
             if (communityVolumes[maxCommunityId] == null)
@@ -166,39 +174,21 @@ public class ClusteringExtension
 
     private static void pruneCommunities() 
     {
-        nodes.parallelStream().forEach(
-            (node) -> {
-                node.pruneCommunities(4);
-            });
+    	 for (int i = 0; i < VERTICES_COUNT; i++) 
+         {
+             nodes[i].pruneCommunities(4);
+         }
     }
 
     private static void initEdgeNodes()
     {
-        nodes = new ArrayList<Node>();
+        nodes = new Node[VERTICES_COUNT];
         for (int i = 0; i < VERTICES_COUNT; i++) 
         {
-            nodes.add(new Node(i));
+            nodes[i] = new Node(i);
         }
     }
    
-    private static void printCommunities()
-    {
-    	validCommunities = new ArrayList<>();
-        for (int i = 1; i < VERTICES_COUNT; i++) 
-        {
-           if (communities[i] == null)
-                continue;
-           
-           if (validCommunities.contains(communities[i]))
-        	   continue;
-           
-           validCommunities.add(communities[i]);
-           totalCommunities++;
-           //System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
-        }
-        //System.out.println("Total " + totalCommunities + " communities found");
-    }
-    
     private static void evaluateCommunities() 
     {
         initExternalDegrees();
@@ -250,9 +240,37 @@ public class ClusteringExtension
         }
     }
 
+    private static void filterValidComnmunities()
+    {
+    	validCommunities = new HashSet<>();
+        for (int i = 1; i < VERTICES_COUNT; i++) 
+        {
+           if (communities[i] == null)
+                continue;
+           
+           if (validCommunities.contains(communities[i]))
+        	   continue;
+           
+           validCommunities.add(communities[i]);
+           totalCommunities++;
+        }
+        members = new HashMap<>();
+    	for (Integer community : validCommunities) 
+    	{
+    		members.put(community, new ArrayList<>());
+    	}
+    	for (Integer i = 1; i < VERTICES_COUNT; i++) 
+        {
+            if (communities[i] == null)
+                continue;
+    		members.get(communities[i]).add(i.toString());
+        }
+    }
+    
     
     public static void writeResultsToFile() throws IOException
     {
+    	filterValidComnmunities();
     	File txtfile = new File("results_extension.txt");
     	FileWriter fileWriter = new FileWriter(txtfile);
     	
@@ -260,27 +278,27 @@ public class ClusteringExtension
     	line.append("Total " + totalCommunities + " communities found");
     	line.append("\n\n");
     	fileWriter.write(line.toString());
-    	
-    	for (int i = 0; i < validCommunities.size() ; i++) 
-        {
+    
+    	for (Integer i : members.keySet()) 
+    	{
     		line = new StringBuilder();
-        	var community = validCommunities.get(i);
-        	line.append("Community id: " + community + "\n");
-        	line.append("Size: " + communityVolumes[community] + "\n");
+        	line.append("Community id: " + i + "\n");
+        	line.append("Size: " + communityVolumes[i] + "\n");
         	line.append("Members: ");
-        	List<Integer> members = new ArrayList<>();
-        	for (int j = 1; j < VERTICES_COUNT; j++) 
-        	{
-	    	   if (communities[j] == community)
-	    	   {
-	    		   line.append(j + ", ");
-	    		   members.add(j);
-	    	   }
-        	}
+        	line.append(String.join(",", members.get(i)));
     	    line.append("\n\n");
     	    fileWriter.write(line.toString());
-        }
+		}
     	fileWriter.close();
+    }
+
+    private static void initDegrees()
+    {
+        degrees = new Integer[VERTICES_COUNT];
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            degrees[i] = 0;
+        }
     }
     
     

@@ -9,17 +9,17 @@ import java.time.Instant;
 
 public class Clustering2PSL  
 {   
-    /*final static int NUM_PARTITIONS = 1000;
+    final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
-    public static String filename = "dataset.csv";*/
+    public static String filename = "dataset.csv";
     
-    
+    /*
     final static int NUM_PARTITIONS = 4;
     public static String filename = "small_dataset.csv";
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
-    
+    */
     
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
@@ -136,45 +136,7 @@ public class Clustering2PSL
             }
         }
     }
-    
-    private static void printCommunities()
-    {
-    	validCommunities = new HashSet<>();
-        for (int i = 1; i < VERTICES_COUNT; i++) 
-        {
-           if (communities[i] == null)
-                continue;
-           
-           if (validCommunities.contains(communities[i]))
-        	   continue;
-           
-           validCommunities.add(communities[i]);
-           totalCommunities++;
-           System.out.println("Community with id " + communities[i] + " has volume " + communityVolumes[communities[i]]);
-        }
-        System.out.println("Total " + totalCommunities + " communities found");
-        
-        
-    }
-    
-    private static void printCommunityMembers()
-    {
-        for (Integer community : validCommunities)
-        {
-        	System.out.print("Members of community " + community  + " : ");
-        	List<Integer> members = new ArrayList<>();
-        	for (int j = 1; j < VERTICES_COUNT; j++) 
-        	{
-	    	   if (communities[j] == community)
-	    	   {
-	    		   System.out.print(j + ", ");
-	    		   members.add(j);
-	    	   }
-        	}
-        	System.out.println();
-        }
-    }
-    
+   
     private static void evaluateCommunities() 
     {
         initExternalDegrees();
