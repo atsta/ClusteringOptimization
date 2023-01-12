@@ -42,26 +42,17 @@ public class ClusteringExtension
     public static Set<Integer> validCommunities;
     public static Map<Integer, List<String>> members; 
     public static int totalCommunities = 0;
-
+    public static long totalDuration;
 
     public static void main(String args[]) throws IOException   
     {   
-        System.out.println("Edges count: "+ EDGES_COUNT);
-        System.out.println("Vertices count: "+ VERTICES_COUNT);
-        System.out.println("Max comminity volume: "+ MAX_COM_VOLUME);
-
         Instant start = Instant.now();
-
         initEdgeNodes();
         findCommunities();
-        
         Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).toMillis();    
-        System.out.println("Total duration: "+ timeElapsed/1000 + " seconds");
+        totalDuration = Duration.between(start, finish).toMillis();    
         
-        //evaluateCommunities();
-        //printQualityScores();
-        
+        evaluateCommunities();        
         writeResultsToFile();
     }   
 
@@ -71,17 +62,15 @@ public class ClusteringExtension
         String splitBy = ",";  
         try   
         {  
-            var edgesProcessed = 0;
-            Instant start = Instant.now();
+            //var edgesProcessed = 0;
             BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                
                 findEdgeCommunity(w, v);
-                edgesProcessed++;
+                //edgesProcessed++;
 
                 /*
                 if (edgesProcessed % WINDOW_SIZE == 0)
@@ -105,7 +94,6 @@ public class ClusteringExtension
 
     public static void findEdgeCommunity(int u, int v)
     {
-    	
         var nodeU = nodes[u];
         var nodeV = nodes[v];
         
@@ -128,8 +116,8 @@ public class ClusteringExtension
             nodeV.updateDegrees(communities[v], 1);
         }
         
-        if (communities[u] == communities[v])
-        	return;
+        //if (communities[u] == communities[v])
+        //	return;
         
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
@@ -172,13 +160,14 @@ public class ClusteringExtension
         }
     }
 
+    /*
     private static void pruneCommunities() 
     {
     	 for (int i = 0; i < VERTICES_COUNT; i++) 
          {
              nodes[i].pruneCommunities(4);
          }
-    }
+    }*/
 
     private static void initEdgeNodes()
     {
@@ -275,10 +264,36 @@ public class ClusteringExtension
     	FileWriter fileWriter = new FileWriter(txtfile);
     	
     	StringBuilder line = new StringBuilder();
-    	line.append("Total " + totalCommunities + " communities found");
-    	line.append("\n\n");
-    	fileWriter.write(line.toString());
-    
+    	//Basic
+    	line.append("Edges count: "+ EDGES_COUNT + "\n");
+    	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
+        line.append("Max comminity volume: "+ MAX_COM_VOLUME + "\n");
+    	line.append("Total " + totalCommunities + " communities found"+ "\n");
+    	
+    	line.append("--------------------------------------------------------------------------\n\n");
+    	
+    	//Time
+    	line.append("Total duration: "+ totalDuration/1000 + " seconds"+ "\n");
+
+    	line.append("--------------------------------------------------------------------------\n\n");
+    	
+    	//Quality
+    	Arrays.sort(qualityScores);
+        int k = 1;
+        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
+        {
+            if (qualityScores[i] != 0)
+            {
+            	line.append("Quality score of community " + i + ":" + qualityScores[i]+ "\n");
+                k++;
+            }
+            if (k > 999)
+                break;
+        }
+    	
+    	line.append("--------------------------------------------------------------------------\n\n");
+    	
+    	fileWriter.write(line.toString());    
     	for (Integer i : members.keySet()) 
     	{
     		line = new StringBuilder();
@@ -292,15 +307,6 @@ public class ClusteringExtension
     	fileWriter.close();
     }
 
-    private static void initDegrees()
-    {
-        degrees = new Integer[VERTICES_COUNT];
-        for (int i = 0; i < VERTICES_COUNT; i++) 
-        {
-            degrees[i] = 0;
-        }
-    }
-    
     
     public static void calculateQualityScores() 
     {
@@ -327,22 +333,6 @@ public class ClusteringExtension
             {
                 qualityScores[i] = (double) internalDegrees[i] / totalDegree;
             }
-        }
-    }
-
-    public static void printQualityScores()
-    {
-        Arrays.sort(qualityScores);
-        int k = 1;
-        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
-        {
-            if (qualityScores[i] != 0)
-            {
-                System.out.println("Quality score of community " + i + ":" + qualityScores[i]);
-                k++;
-            }
-            if (k > 999)
-                break;
         }
     }
 }  

@@ -32,45 +32,27 @@ public class Clustering2PSL
     public static Set<Integer> validCommunities;
     public static int totalCommunities = 0;
     public static Map<Integer, List<String>> members; 
-    
+    public static long communitiesCalcDuration;
+    public static long totalDuration;
+    public static long degreeCalcDuration;
+
     public static void main(String args[]) throws IOException   
     {   
-        System.out.println("Edges count: "+ EDGES_COUNT);
-        System.out.println("Vertices count: "+ VERTICES_COUNT);
-        System.out.println("Max comminity volume: "+ MAX_COM_VOLUME);
-
         Instant start = Instant.now();
-
         Instant startDegreeCalc = Instant.now();
         calcDegrees();
-        //printEdgeDegrees();
         Instant finishDegreeCalc = Instant.now();
-        long timeElapsedDegreeCalc = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
-        System.out.println("Degree calculation: "+ timeElapsedDegreeCalc/1000 + " seconds");
+        degreeCalcDuration = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
 
         Instant startCommunitiesCalc = Instant.now();
         findCommunities();
-        findCommunities();
-        
-        //printCommunities();
-       // printCommunityMembers();
-        
+        findCommunities(); 
         Instant finishCommunitiesCalc = Instant.now();
-        long timeElapsedCommunitiesCalc = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
-        System.out.println("Communities detection: "+ timeElapsedCommunitiesCalc/1000 + " seconds");
-        
+        communitiesCalcDuration = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
         Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).toMillis();    
-        System.out.println("Total duration: "+ timeElapsed/1000 + " seconds");
-
-        double degreePercentage = (double) Math.round(timeElapsedDegreeCalc * 100 / timeElapsed);
-        double communityPercentage = (double) Math.round(timeElapsedCommunitiesCalc * 100 / timeElapsed);
-        System.out.println("Degree calculation in total duration: " + degreePercentage + " %");
-        System.out.println("Community detection in total duration: " + communityPercentage + " %");
+        totalDuration = Duration.between(start, finish).toMillis();    
 
         evaluateCommunities();
-        //printQualityScores();
-        
         writeResultsToFile();
     }   
 
@@ -215,22 +197,6 @@ public class Clustering2PSL
             }
         }
     }
-
-    public static void printQualityScores()
-    {
-        Arrays.sort(qualityScores);
-        int k = 1;
-        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
-        {
-            if (qualityScores[i] != 0)
-            {
-                System.out.println("Quality score of community " + i + ":" + qualityScores[i]);
-                k++;
-            }
-            if (k > 999)
-                break;
-        }
-    }
     
     private static void filterValidComnmunities()
     {
@@ -266,10 +232,38 @@ public class Clustering2PSL
     	FileWriter fileWriter = new FileWriter(txtfile);
     	
     	StringBuilder line = new StringBuilder();
-    	line.append("Total " + totalCommunities + " communities found");
-    	line.append("\n\n");
+    	//Basic
+    	line.append("Edges count: "+ EDGES_COUNT + "\n");
+    	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
+        line.append("Max comminity volume: "+ MAX_COM_VOLUME + "\n");
+    	line.append("Total " + totalCommunities + " communities found"+ "\n");
+    	
+    	line.append("--------------------------------------------------------------------------\n\n");
+
+    	//Time
+    	line.append("Degree calculation: "+ degreeCalcDuration/1000 + " seconds"+ "\n");
+    	line.append("Communities detection: "+ communitiesCalcDuration/1000 + " seconds"+ "\n");
+    	line.append("Total duration: "+ totalDuration/1000 + " seconds"+ "\n");
+
+    	line.append("--------------------------------------------------------------------------\n\n");
+    	
+    	//Quality
+    	Arrays.sort(qualityScores);
+        int k = 1;
+        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
+        {
+            if (qualityScores[i] != 0)
+            {
+            	line.append("Quality score of community " + i + ":" + qualityScores[i]+ "\n");
+                k++;
+            }
+            if (k > 999)
+                break;
+        }
+    	
+    	line.append("--------------------------------------------------------------------------\n\n");
+
     	fileWriter.write(line.toString());
-    
     	for (Integer i : members.keySet()) 
     	{
     		line = new StringBuilder();
@@ -313,15 +307,5 @@ public class Clustering2PSL
         {  
             e.printStackTrace();  
         }   
-    }
-
-    private static void printEdgeDegrees() 
-    {
-        System.out.println("The input edge degrees (top 1000):");
-        for (int i = 0; i < degrees.length; i++) {
-            System.out.println(i + " -> " + degrees[i]);
-            if (i > 999)
-                break;
-        }
     }
 }  
