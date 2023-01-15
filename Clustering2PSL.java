@@ -21,11 +21,11 @@ public class Clustering2PSL
     final static int EDGES_COUNT = 560;
     */
     
+    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
     public static double[] qualityScores = new double[VERTICES_COUNT];
-    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
@@ -172,30 +172,31 @@ public class Clustering2PSL
 
     public static void calculateQualityScores() 
     {
-        //conductance score
-
-        // for (int i = 0; i < VERTICES_COUNT; i++)
-        // {
-        //     if (communityVolumes[i] == null)
-        //         continue;
-
-        //     var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
-        //     if (denominator != 0)
-        //     {
-        //         qualityScores[i] = (double) externalDegrees[i] / denominator;
-        //     }
-        // }
-
-        //coverage score 
+    	 //conductance score
 
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
-            var totalDegree = internalDegrees[i] + externalDegrees[i];
-            if (totalDegree != 0)
+            if (communityVolumes[i] == null)
+                continue;
+
+            var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+            if (denominator != 0)
             {
-                qualityScores[i] = (double) internalDegrees[i] / totalDegree;
+               qualityScores[i] = (double) externalDegrees[i] / denominator;
             }
         }
+        
+
+       //coverage score 
+   	/*
+       for (int i = 0; i < VERTICES_COUNT; i++)
+       {
+           var totalDegree = internalDegrees[i] + externalDegrees[i];
+           if (totalDegree != 0)
+           {
+               qualityScores[i] = (double) internalDegrees[i] / totalDegree;
+           }
+       }*/
     }
     
     private static void filterValidComnmunities()
@@ -250,7 +251,8 @@ public class Clustering2PSL
     	//Quality
     	Arrays.sort(qualityScores);
         int k = 1;
-        for (int i = VERTICES_COUNT - 1; i >= 0; i--)
+        for (int i = 0; i < VERTICES_COUNT; i++)
+        //for (int i = VERTICES_COUNT - 1; i >= 0; i--)
         {
             if (qualityScores[i] != 0)
             {

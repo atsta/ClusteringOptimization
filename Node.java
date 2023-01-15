@@ -24,6 +24,8 @@ public class Node
 	}
 
 	public void updateDegrees(Integer community, Integer value) {
+		if (value < 0)
+			value = 0;
 		this.communityDegrees.put(community, value);
 	}
 
