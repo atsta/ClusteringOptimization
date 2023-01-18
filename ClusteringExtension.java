@@ -36,7 +36,8 @@ public class ClusteringExtension
     public static Node[] nodes;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
-    public static double[] qualityScores = new double[VERTICES_COUNT];
+    public static double[] coverageScores = new double[VERTICES_COUNT];
+    public static double[] conductanceScores = new double[VERTICES_COUNT];
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
@@ -103,25 +104,29 @@ public class ClusteringExtension
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 0;
             communities[u] = maxCommunityId;
-            communityVolumes[maxCommunityId]=0;
+            communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
-            //nodeU.updateDegrees(communities[u],1);
+            nodeU.updateDegrees(communities[u],1);
         }
         if(communities[v] == null)
         {
             if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 0;
+                communityVolumes[maxCommunityId] = 1;
             communities[v] = maxCommunityId;
             communityVolumes[maxCommunityId]=0;
             maxCommunityId++;
-            //nodeV.updateDegrees(communities[v], 1);
+            nodeV.updateDegrees(communities[v], 1);
         }
-        
-        //if (communities[u] == communities[v])
-        //	return;
         
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
+        
+        if (communities[u] == communities[v])
+        {
+            nodeU.updateDegrees(communities[v], degreeUinCommU + 1);
+            nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
+        	return;
+        }
        
         var volCommU = communityVolumes[communities[u]];
         var volCommV = communityVolumes[communities[v]];
@@ -138,7 +143,7 @@ public class ClusteringExtension
 
         if((0 <= volCommU && volCommU < MAX_COM_VOLUME) && (0 <= volCommV && volCommV < MAX_COM_VOLUME))
         {
-            if(volCommU <= volCommV && volCommV + degreeUinCommV < MAX_COM_VOLUME)
+            if(volCommU <= volCommV && volCommV + degreeUinCommV + 1 < MAX_COM_VOLUME)
             {
             	communityVolumes[communities[u]]= trueVolCommU;
                 communityVolumes[communities[v]]= volCommV + degreeUinCommV + 1;
@@ -150,7 +155,7 @@ public class ClusteringExtension
                 
                 communities[u] = communities[v];
             }
-            else if (volCommV < volCommU && volCommU + degreeVinCommU < MAX_COM_VOLUME) 
+            else if (volCommV < volCommU && volCommU + degreeVinCommU + 1 < MAX_COM_VOLUME) 
             {
             	communityVolumes[communities[v]]=trueVolCommV;                
                 communityVolumes[communities[u]]=volCommU + degreeVinCommU + 1;
@@ -214,7 +219,8 @@ public class ClusteringExtension
         {
             externalDegrees[i] = 0;
             internalDegrees[i] = 0;
-            qualityScores[i] = 0;
+            conductanceScores[i] = 0;
+            coverageScores[i] = 0;
         }
     }
 
@@ -260,7 +266,34 @@ public class ClusteringExtension
     		members.get(communities[i]).add(i.toString());
         }
     }
-    
+
+    public static void calculateQualityScores() 
+    {
+        //conductance score
+
+         for (int i = 0; i < VERTICES_COUNT; i++)
+         {
+             if (communityVolumes[i] == null)
+                 continue;
+
+             var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+             if (denominator != 0)
+             {
+                conductanceScores[i] = (double) externalDegrees[i] / denominator;
+             }
+         }
+
+        //coverage score 
+    	
+        for (int i = 0; i < VERTICES_COUNT; i++)
+        {
+            var totalDegree = internalDegrees[i] + externalDegrees[i];
+            if (totalDegree != 0)
+            {
+                coverageScores[i] = (double) internalDegrees[i] / totalDegree;
+            }
+        }
+    }
     
     public static void writeResultsToFile() throws IOException
     {
@@ -283,20 +316,16 @@ public class ClusteringExtension
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	//Quality
-    	Arrays.sort(qualityScores);
-        int k = 1;
+    	var sumCoverage = 0;
+    	var sumConductance = 0;
         for (int i = 0; i < VERTICES_COUNT; i++)
-        //for (int i = VERTICES_COUNT - 1; i >= 0; i--)
         {
-            if (qualityScores[i] != 0)
-            {
-            	line.append("Quality score of community " + i + ":" + qualityScores[i]+ "\n");
-                k++;
-            }
-            if (k > 999)
-                break;
+        	sumCoverage += coverageScores[i];
+        	sumConductance += conductanceScores[i];
         }
-    	
+    	line.append("Average covergae: "+ sumCoverage/VERTICES_COUNT + "\n");
+    	line.append("Average conductance: "+ sumConductance/VERTICES_COUNT + "\n");
+
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	fileWriter.write(line.toString());    
@@ -311,35 +340,5 @@ public class ClusteringExtension
     	    fileWriter.write(line.toString());
 		}
     	fileWriter.close();
-    }
-
-    
-    public static void calculateQualityScores() 
-    {
-        //conductance score
-
-         for (int i = 0; i < VERTICES_COUNT; i++)
-         {
-             if (communityVolumes[i] == null)
-                 continue;
-
-             var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
-             if (denominator != 0)
-             {
-                qualityScores[i] = (double) externalDegrees[i] / denominator;
-             }
-         }
-         
-
-        //coverage score 
-    	/*
-        for (int i = 0; i < VERTICES_COUNT; i++)
-        {
-            var totalDegree = internalDegrees[i] + externalDegrees[i];
-            if (totalDegree != 0)
-            {
-                qualityScores[i] = (double) internalDegrees[i] / totalDegree;
-            }
-        }*/
     }
 }  

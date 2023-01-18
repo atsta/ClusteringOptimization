@@ -25,7 +25,8 @@ public class Clustering2PSL
     public static Integer[] degrees;
     public static Integer[] externalDegrees;
     public static Integer[] internalDegrees;
-    public static double[] qualityScores = new double[VERTICES_COUNT];
+    public static double[] coverageScores = new double[VERTICES_COUNT];
+    public static double[] conductanceScores = new double[VERTICES_COUNT];
     public static Integer[] communities = new Integer[VERTICES_COUNT];
     public static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
     public static int maxCommunityId = 1;
@@ -150,7 +151,8 @@ public class Clustering2PSL
         {
             externalDegrees[i] = 0;
             internalDegrees[i] = 0;
-            qualityScores[i] = 0;
+            conductanceScores[i] = 0;
+            coverageScores[i] = 0;      
         }
     }
 
@@ -172,31 +174,30 @@ public class Clustering2PSL
 
     public static void calculateQualityScores() 
     {
-    	 //conductance score
+        //conductance score
 
+         for (int i = 0; i < VERTICES_COUNT; i++)
+         {
+             if (communityVolumes[i] == null)
+                 continue;
+
+             var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+             if (denominator != 0)
+             {
+                conductanceScores[i] = (double) externalDegrees[i] / denominator;
+             }
+         }
+
+        //coverage score 
+    	
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
-            if (communityVolumes[i] == null)
-                continue;
-
-            var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
-            if (denominator != 0)
+            var totalDegree = internalDegrees[i] + externalDegrees[i];
+            if (totalDegree != 0)
             {
-               qualityScores[i] = (double) externalDegrees[i] / denominator;
+                coverageScores[i] = (double) internalDegrees[i] / totalDegree;
             }
         }
-        
-
-       //coverage score 
-   	/*
-       for (int i = 0; i < VERTICES_COUNT; i++)
-       {
-           var totalDegree = internalDegrees[i] + externalDegrees[i];
-           if (totalDegree != 0)
-           {
-               qualityScores[i] = (double) internalDegrees[i] / totalDegree;
-           }
-       }*/
     }
     
     private static void filterValidComnmunities()
@@ -249,19 +250,15 @@ public class Clustering2PSL
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	//Quality
-    	Arrays.sort(qualityScores);
-        int k = 1;
+    	var sumCoverage = 0;
+    	var sumConductance = 0;
         for (int i = 0; i < VERTICES_COUNT; i++)
-        //for (int i = VERTICES_COUNT - 1; i >= 0; i--)
         {
-            if (qualityScores[i] != 0)
-            {
-            	line.append("Quality score of community " + i + ":" + qualityScores[i]+ "\n");
-                k++;
-            }
-            if (k > 999)
-                break;
+        	sumCoverage += coverageScores[i];
+        	sumConductance += conductanceScores[i];
         }
+    	line.append("Average covergae: "+ sumCoverage/VERTICES_COUNT + "\n");
+    	line.append("Average conductance: "+ sumConductance/VERTICES_COUNT + "\n");
     	
     	line.append("--------------------------------------------------------------------------\n\n");
 
