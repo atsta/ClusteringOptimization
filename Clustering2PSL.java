@@ -257,8 +257,8 @@ public class Clustering2PSL
         	sumCoverage += coverageScores[i];
         	sumConductance += conductanceScores[i];
         }
-    	line.append("Average covergae: "+ sumCoverage/VERTICES_COUNT + "\n");
-    	line.append("Average conductance: "+ sumConductance/VERTICES_COUNT + "\n");
+    	line.append("Average covergae: "+ sumCoverage + "\n");
+    	line.append("Average conductance: "+ sumConductance + "\n");
     	
     	line.append("--------------------------------------------------------------------------\n\n");
 

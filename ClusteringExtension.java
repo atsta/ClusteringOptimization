@@ -101,21 +101,21 @@ public class ClusteringExtension
         
         if(communities[u] == null)
         {
-            if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 0;
             communities[u] = maxCommunityId;
-            communityVolumes[maxCommunityId]=1;
+            if (communityVolumes[maxCommunityId] == null)
+                communityVolumes[maxCommunityId] = 1;
+            //communityVolumes[maxCommunityId]=1;
             maxCommunityId++;
-            nodeU.updateDegrees(communities[u],1);
+            //nodeU.updateDegrees(communities[u],1);
         }
         if(communities[v] == null)
         {
+            communities[v] = maxCommunityId;
             if (communityVolumes[maxCommunityId] == null)
                 communityVolumes[maxCommunityId] = 1;
-            communities[v] = maxCommunityId;
-            communityVolumes[maxCommunityId]=0;
+            //communityVolumes[maxCommunityId]=0;
             maxCommunityId++;
-            nodeV.updateDegrees(communities[v], 1);
+          //  nodeV.updateDegrees(communities[v], 1);
         }
         
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
@@ -323,8 +323,8 @@ public class ClusteringExtension
         	sumCoverage += coverageScores[i];
         	sumConductance += conductanceScores[i];
         }
-    	line.append("Average covergae: "+ sumCoverage/VERTICES_COUNT + "\n");
-    	line.append("Average conductance: "+ sumConductance/VERTICES_COUNT + "\n");
+    	line.append("Average covergae: "+ sumCoverage + "\n");
+    	line.append("Average conductance: "+ sumConductance + "\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
     	
