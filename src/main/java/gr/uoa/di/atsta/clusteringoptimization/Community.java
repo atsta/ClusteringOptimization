@@ -1,3 +1,4 @@
+package gr.uoa.di.atsta.clusteringoptimization;
 import java.util.*;   
 
 public class Community 

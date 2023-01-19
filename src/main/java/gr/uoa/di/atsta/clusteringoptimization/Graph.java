@@ -1,3 +1,4 @@
+package gr.uoa.di.atsta.clusteringoptimization;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
