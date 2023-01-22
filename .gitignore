@@ -83,3 +83,10 @@ nb-configuration.xml
 ##############################
 .DS_Store
 
+Vagrantfile 
+.vagrant
+*.class
+*.gz
+*.csv
+*.out
+*.txt
