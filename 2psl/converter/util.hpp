@@ -95,6 +95,9 @@ class Node
         {
             if (value < 0)
                 value = 0;
-            communityDegrees[community] = value;
+            //communityDegrees[community] = value;
+
+            auto const result = communityDegrees.insert(std::make_pair(community, value));
+            if (not result.second) { result.first->second = value; }
         }
     };

@@ -114,18 +114,10 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
         auto& vol_u = volumes[com_u];
         auto& vol_v = volumes[com_v];
 
-
         auto degreeUinCommU = nodeU.getDegrees(com_u);
         auto degreeUinCommV = nodeU.getDegrees(com_v);
         auto degreeVinCommV = nodeV.getDegrees(com_v);
         auto degreeVinCommU = nodeV.getDegrees(com_u);
-        
-        /*
-        auto degreeUinCommU = 0;
-        auto degreeUinCommV = 0;
-        auto degreeVinCommV = 0;
-        auto degreeVinCommU = 0;
-        */
 
         // auto& degreeVinCommV = nodeV.communityDegrees[com_v];
         // auto& degreeUinCommV = nodeU.communityDegrees[com_v];
@@ -141,20 +133,16 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
             if(real_vol_u <= real_vol_v && vol_v + degreeUinCommV + 1 <= globals.MAX_COM_VOLUME){
                 vol_u -= degreeUinCommU;
                 vol_v += degreeUinCommV + 1;
-                
                 nodeU.updateDegrees(com_v, degreeUinCommV + 1);
                 nodeV.updateDegrees(com_v, degreeVinCommV + 1);
-            
                 //nodeV.communityDegrees[com_v] += 1;
                 communities[u] = communities[v];
             }
             else if (real_vol_v < real_vol_u && vol_u + degreeVinCommU + 1 <= globals.MAX_COM_VOLUME) {
                 vol_v -= degreeVinCommV;
                 vol_u += degreeVinCommU + 1;
-
                 nodeU.updateDegrees(com_u, degreeUinCommU + 1);
                 nodeV.updateDegrees(com_u, degreeVinCommU + 1);
-                
                 //nodeV.communityDegrees[com_u] += 1;
                 communities[v] = communities[u];
             }
