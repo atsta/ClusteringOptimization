@@ -16,12 +16,13 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
-	
+	/*
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static String filename = "dataset.csv";
     final static int WINDOW_SIZE = 1000;
+    */
     
 	/*
     final static int NUM_PARTITIONS = 4;
@@ -30,9 +31,13 @@ public class ClusteringExtension
     final static int WINDOW_SIZE = 50;
     public static String filename = "small_dataset.csv";
     */
+	
+    final static int NUM_PARTITIONS = 5;
+    final static int VERTICES_COUNT = 29;
+    final static int EDGES_COUNT = 165;
+    public static String filename = "small_dataset.csv";
     
-    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
-   // public static int MAX_COM_VOLUME = VERTICES_COUNT/NUM_PARTITIONS;
+    public static int MAX_COM_VOLUME = 2 * VERTICES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static Node[] nodes;
     public static Integer[] externalDegrees;
@@ -144,10 +149,12 @@ public class ClusteringExtension
 
         if((0 <= volCommU && volCommU < MAX_COM_VOLUME) && (0 <= volCommV && volCommV < MAX_COM_VOLUME))
         {
-            if(volCommU <= volCommV && volCommV + degreeUinCommV + 1 < MAX_COM_VOLUME)
+            if(volCommU <= volCommV && volCommV + 1 < MAX_COM_VOLUME)
             {
-            	communityVolumes[communities[u]]= trueVolCommU;
-                communityVolumes[communities[v]]= volCommV + degreeUinCommV + 1;
+            	volCommU -=1;
+            	if (volCommU < 0)
+            		volCommU = 0;
+                communityVolumes[communities[v]] +=1;
                 nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
                 nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
                 
@@ -156,10 +163,12 @@ public class ClusteringExtension
                 
                 communities[u] = communities[v];
             }
-            else if (volCommV < volCommU && volCommU + degreeVinCommU + 1 < MAX_COM_VOLUME) 
+            else if (volCommV < volCommU && volCommU  + 1 < MAX_COM_VOLUME) 
             {
-            	communityVolumes[communities[v]]=trueVolCommV;                
-                communityVolumes[communities[u]]=volCommU + degreeVinCommU + 1;
+            	volCommV -=1;
+            	if (volCommV < 0)
+            		volCommV = 0;                
+            	communityVolumes[communities[u]] += 1;
                 nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
                 nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
 
@@ -277,7 +286,7 @@ public class ClusteringExtension
              if (communityVolumes[i] == null)
                  continue;
 
-             var denominator = Math.min(communityVolumes[i], 2*EDGES_COUNT - communityVolumes[i]);
+             var denominator = Math.min(communityVolumes[i], 2*VERTICES_COUNT - communityVolumes[i]);
              if (denominator != 0)
              {
                 conductanceScores[i] = (double) externalDegrees[i] / denominator;
@@ -324,7 +333,7 @@ public class ClusteringExtension
         	sumCoverage += coverageScores[i];
         	sumConductance += conductanceScores[i];
         }
-    	line.append("Average covergae: "+ sumCoverage + "\n");
+    	line.append("Average coverage: "+ sumCoverage + "\n");
     	line.append("Average conductance: "+ sumConductance + "\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
