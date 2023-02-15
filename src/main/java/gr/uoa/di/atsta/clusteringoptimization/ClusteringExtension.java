@@ -37,7 +37,8 @@ public class ClusteringExtension
     final static int EDGES_COUNT = 165;
     public static String filename = "small_dataset.csv";
     
-    public static int MAX_COM_VOLUME = 2 * VERTICES_COUNT/NUM_PARTITIONS;
+    public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
+   // public static int MAX_COM_VOLUME = 2 * VERTICES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static Node[] nodes;
     public static Integer[] externalDegrees;
@@ -108,73 +109,50 @@ public class ClusteringExtension
         if(communities[u] == null)
         {
             communities[u] = maxCommunityId;
-            if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 1;
-            //communityVolumes[maxCommunityId]=1;
+            communityVolumes[maxCommunityId] = 1;
             maxCommunityId++;
-            //nodeU.updateDegrees(communities[u],1);
         }
         if(communities[v] == null)
         {
             communities[v] = maxCommunityId;
-            if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 1;
-            //communityVolumes[maxCommunityId]=0;
+            communityVolumes[maxCommunityId] = 1;
             maxCommunityId++;
-          //  nodeV.updateDegrees(communities[v], 1);
         }
         
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
-        
-        if (communities[u] == communities[v])
-        {
-            nodeU.updateDegrees(communities[v], degreeUinCommU + 1);
-            nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
-        	return;
-        }
-       
-        var volCommU = communityVolumes[communities[u]];
-        var volCommV = communityVolumes[communities[v]];
-        
         var degreeUinCommV = nodeU.getDegrees(communities[v]);
         var degreeVinCommU = nodeV.getDegrees(communities[u]);
 
+        nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
+        nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
+        nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
+        nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
+        
+        var volCommU = communityVolumes[communities[u]];
+        var volCommV = communityVolumes[communities[v]];
+        
         var trueVolCommU = volCommU - degreeUinCommU;
-        if (trueVolCommU < 0)
-        	trueVolCommU = 0;
         var trueVolCommV = volCommV - degreeVinCommV;
-        if (trueVolCommV < 0)
-        	trueVolCommV = 0;
 
-        if((0 <= volCommU && volCommU < MAX_COM_VOLUME) && (0 <= volCommV && volCommV < MAX_COM_VOLUME))
+        
+        if((0 <= trueVolCommU && volCommU < MAX_COM_VOLUME) && (0 <= trueVolCommV && volCommV < MAX_COM_VOLUME))
         {
-            if(volCommU <= volCommV && volCommV + 1 < MAX_COM_VOLUME)
+            if (communities[u] == communities[v]) 
             {
-            	volCommU -=1;
-            	if (volCommU < 0)
-            		volCommU = 0;
-                communityVolumes[communities[v]] +=1;
-                nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
-                nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
-                
-                //nodeU.updateDegrees(communities[u], degreeUinCommU - 1);
-                //nodeV.updateDegrees(communities[u], degreeVinCommU - 1);
-                
+            	communityVolumes[communities[u]]+=2;
+            	return;
+            }
+            if(trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV + 1 <= MAX_COM_VOLUME)
+            {
+            	communityVolumes[communities[u]] -= degreeUinCommU;
+                communityVolumes[communities[v]] += degreeUinCommV + 1;
                 communities[u] = communities[v];
             }
-            else if (volCommV < volCommU && volCommU  + 1 < MAX_COM_VOLUME) 
+            else if (trueVolCommV < trueVolCommU && volCommU + degreeVinCommU + 1 <= MAX_COM_VOLUME) 
             {
-            	volCommV -=1;
-            	if (volCommV < 0)
-            		volCommV = 0;                
-            	communityVolumes[communities[u]] += 1;
-                nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
-                nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
-
-                //nodeV.updateDegrees(communities[v], degreeVinCommV - 1);
-                //nodeU.updateDegrees(communities[v], degreeUinCommV - 1);
-                
+            	communityVolumes[communities[v]] -= degreeVinCommV;
+                communityVolumes[communities[u]] += degreeVinCommU + 1;                
                 communities[v] = communities[u];
             }
         }
