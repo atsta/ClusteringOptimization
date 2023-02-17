@@ -16,13 +16,12 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
-	/*
+	
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
-    public static String filename = "dataset.csv";
-    final static int WINDOW_SIZE = 1000;
-    */
+    public static String filename = "dataset.csv";    
+    final static int WINDOW_SIZE = 10000;
     
 	/*
     final static int NUM_PARTITIONS = 4;
@@ -32,10 +31,12 @@ public class ClusteringExtension
     public static String filename = "small_dataset.csv";
     */
 	
+    /*
     final static int NUM_PARTITIONS = 5;
     final static int VERTICES_COUNT = 29;
     final static int EDGES_COUNT = 165;
     public static String filename = "small_dataset.csv";
+    */
     
     public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
    // public static int MAX_COM_VOLUME = 2 * VERTICES_COUNT/NUM_PARTITIONS;
@@ -52,6 +53,7 @@ public class ClusteringExtension
     public static Map<Integer, List<String>> members; 
     public static int totalCommunities = 0;
     public static long totalDuration;
+    public static List<Map<Integer, Integer>> nodeDegrees;
 
     public static void main(String args[]) throws IOException   
     {   
@@ -72,7 +74,7 @@ public class ClusteringExtension
         String splitBy = ",";  
         try   
         {  
-            //var edgesProcessed = 0;
+            var edgesProcessed = 0;
             BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
@@ -80,6 +82,11 @@ public class ClusteringExtension
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
                 updatePartialDegree(w, v);
+                
+                edgesProcessed++;
+
+                //if (edgesProcessed%WINDOW_SIZE == 0)
+                  //  pruneCommunities();
             }  
         }   
         catch (IOException e)   
@@ -89,6 +96,20 @@ public class ClusteringExtension
     }
     
 
+    private static void pruneCommunities() 
+    {
+    	/*
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            nodes[i].pruneCommunities(4);
+        }*/
+        
+    	nodeDegrees.parallelStream().forEach(
+                (node) -> {
+                    Node.findGreatest(node, 4);
+                });
+    }
+    
     private static void findCommunities()
     {
         String line = "";  
@@ -111,10 +132,21 @@ public class ClusteringExtension
         }   
     }
     
+
+	private static Integer getDegree(Integer degreeInComm) {
+        if (degreeInComm == null)
+            return 0;
+        return degreeInComm;   
+	}
+	
     public static void updatePartialDegree(int u, int v)
     {
+    	/*
         var nodeU = nodes[u];
         var nodeV = nodes[v];
+        */
+        var nodeU = nodeDegrees.get(u);
+        var nodeV = nodeDegrees.get(v);
         
         if(communities[u] == null)
         {
@@ -127,27 +159,52 @@ public class ClusteringExtension
             maxCommunityId++;
         }
         
+        /*
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
         var degreeUinCommV = nodeU.getDegrees(communities[v]);
         var degreeVinCommU = nodeV.getDegrees(communities[u]);
 
-        nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
-        nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
-        nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
-        nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
+*/
+        if (nodeU.size() > 50)
+        	 Node.findGreatest(nodeU, 4);
+        
+        if (nodeV.size() > 50)
+       	 Node.findGreatest(nodeV, 4);
+        
+        var degreeUinCommU = nodeU.get(communities[u]);
+        var degreeVinCommV = nodeV.get(communities[v]);
+        var degreeUinCommV = nodeU.get(communities[v]);
+        var degreeVinCommU = nodeV.get(communities[u]);
+        
+        nodeU.put(communities[v], getDegree(degreeUinCommV) + 1);
+        nodeV.put(communities[v], getDegree(degreeVinCommV) + 1);
+        nodeV.put(communities[u], getDegree(degreeVinCommU) + 1);
+        nodeU.put(communities[u], getDegree(degreeUinCommU) + 1);
+        
     }
     
 
     public static void findEdgeCommunity(int u, int v)
     {
-        var nodeU = nodes[u];
-        var nodeV = nodes[v];
+        //var nodeU = nodes[u];
+        //var nodeV = nodes[v];
        
+        var nodeU = nodeDegrees.get(u);
+        var nodeV = nodeDegrees.get(v);
+        /*
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
         var degreeUinCommV = nodeU.getDegrees(communities[v]);
         var degreeVinCommU = nodeV.getDegrees(communities[u]);
+        
+        */
+        
+        
+        var degreeUinCommU = nodeU.get(communities[u]);
+        var degreeVinCommV = nodeV.get(communities[v]);
+        var degreeUinCommV = nodeU.get(communities[v]);
+        var degreeVinCommU = nodeV.get(communities[u]);
         
         if(communityVolumes[communities[u]] == null)
         {
@@ -192,10 +249,13 @@ public class ClusteringExtension
 
     private static void initEdgeNodes()
     {
-        nodes = new Node[VERTICES_COUNT];
+        //nodes = new Node[VERTICES_COUNT];
+    	nodeDegrees = new ArrayList<Map<Integer, Integer>>();
         for (int i = 0; i < VERTICES_COUNT; i++) 
         {
-            nodes[i] = new Node(i);
+            //nodes[i] = new Node(i);
+            
+            nodeDegrees.add(new HashMap<Integer, Integer>());
         }
     }
    
@@ -287,7 +347,7 @@ public class ClusteringExtension
              if (communityVolumes[i] == null)
                  continue;
 
-             var denominator = Math.min(communityVolumes[i], 2*VERTICES_COUNT - communityVolumes[i]);
+             var denominator = Math.min(communityVolumes[i], EDGES_COUNT - communityVolumes[i]);
              if (denominator != 0)
              {
                 conductanceScores[i] = (double) externalDegrees[i] / denominator;
@@ -329,13 +389,19 @@ public class ClusteringExtension
     	//Quality
     	var sumCoverage = 0;
     	var sumConductance = 0;
+    	var sumInternalDegrees = 0;
+    	var sumExternalDegrees = 0;
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
         	sumCoverage += coverageScores[i];
         	sumConductance += conductanceScores[i];
+        	sumInternalDegrees += internalDegrees[i];
+        	sumExternalDegrees += externalDegrees[i];
         }
     	line.append("Average coverage: "+ sumCoverage + "\n");
     	line.append("Average conductance: "+ sumConductance + "\n");
+    	line.append("Sum internal degrees: "+ sumInternalDegrees + "\n");
+    	line.append("Sum external degrees: "+ sumExternalDegrees + "\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
     	

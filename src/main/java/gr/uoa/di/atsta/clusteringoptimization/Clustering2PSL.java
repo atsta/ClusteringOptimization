@@ -12,12 +12,12 @@ import java.time.Instant;
 public class Clustering2PSL  
 {   
 	
-	/*
+	
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static String filename = "dataset.csv";
-    */
+    
     /*
     final static int NUM_PARTITIONS = 4;
     public static String filename = "small_dataset.csv";
@@ -25,10 +25,12 @@ public class Clustering2PSL
     final static int EDGES_COUNT = 560;
     */
 	
+    /*
     final static int NUM_PARTITIONS = 5;
     final static int VERTICES_COUNT = 29;
     final static int EDGES_COUNT = 165;
     public static String filename = "small_dataset.csv";
+    */
     
     public static int MAX_COM_VOLUME = 2 * EDGES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
@@ -204,8 +206,6 @@ public class Clustering2PSL
             var totalDegree = internalDegrees[i] + externalDegrees[i];
             if (totalDegree != 0)
             {
-                System.out.println(internalDegrees[i]);
-
                 coverageScores[i] = (double) internalDegrees[i] / totalDegree;
             }
         }
@@ -263,14 +263,20 @@ public class Clustering2PSL
     	//Quality
     	var sumCoverage = 0;
     	var sumConductance = 0;
+    	var sumInternalDegrees = 0;
+    	var sumExternalDegrees = 0;
         for (int i = 0; i < VERTICES_COUNT; i++)
         {
         	sumCoverage += coverageScores[i];
         	sumConductance += conductanceScores[i];
+        	sumInternalDegrees += internalDegrees[i];
+        	sumExternalDegrees += externalDegrees[i];
         }
     	line.append("Average coverage: "+ sumCoverage + "\n");
     	line.append("Average conductance: "+ sumConductance + "\n");
-    	
+    	line.append("Sum internal degrees: "+ sumInternalDegrees + "\n");
+    	line.append("Sum external degrees: "+ sumExternalDegrees + "\n");
+
     	line.append("--------------------------------------------------------------------------\n\n");
 
     	fileWriter.write(line.toString());
