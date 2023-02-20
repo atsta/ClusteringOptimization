@@ -12,18 +12,18 @@ import java.time.Instant;
 public class Clustering2PSL  
 {   
 	
-	
+	/*
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static String filename = "dataset.csv";
+    */
     
-    /*
     final static int NUM_PARTITIONS = 4;
     public static String filename = "small_dataset.csv";
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
-    */
+    
 	
     /*
     final static int NUM_PARTITIONS = 5;
@@ -249,6 +249,7 @@ public class Clustering2PSL
     	line.append("Edges count: "+ EDGES_COUNT + "\n");
     	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
         line.append("Max comminity volume: "+ MAX_COM_VOLUME + "\n");
+        line.append("Number of partitions: "+ NUM_PARTITIONS + "\n");
     	line.append("Total " + totalCommunities + " communities found"+ "\n");
     	
     	line.append("--------------------------------------------------------------------------\n\n");

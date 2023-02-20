@@ -16,20 +16,20 @@ import java.util.Set;
 
 public class ClusteringExtension
 {   
-	
+	/*
     final static int NUM_PARTITIONS = 1000;
     final static int VERTICES_COUNT = 4000000;
     final static int EDGES_COUNT = 117185084;
     public static String filename = "dataset.csv";    
     final static int WINDOW_SIZE = 10000;
-    
-	/*
-    final static int NUM_PARTITIONS = 4;
+    */
+	
+    final static int NUM_PARTITIONS = 10;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
     final static int WINDOW_SIZE = 50;
     public static String filename = "small_dataset.csv";
-    */
+    
 	
     /*
     final static int NUM_PARTITIONS = 5;
@@ -39,7 +39,6 @@ public class ClusteringExtension
     */
     
     public static int MAX_COM_VOLUME = EDGES_COUNT/NUM_PARTITIONS;
-   // public static int MAX_COM_VOLUME = 2 * VERTICES_COUNT/NUM_PARTITIONS;
     public static Integer[] degrees;
     public static Node[] nodes;
     public static Integer[] externalDegrees;
@@ -170,7 +169,7 @@ public class ClusteringExtension
         	 Node.findGreatest(nodeU, 4);
         
         if (nodeV.size() > 50)
-       	 Node.findGreatest(nodeV, 4);
+            Node.findGreatest(nodeV, 4);
         
         var degreeUinCommU = nodeU.get(communities[u]);
         var degreeVinCommV = nodeV.get(communities[v]);
@@ -201,10 +200,10 @@ public class ClusteringExtension
         */
         
         
-        var degreeUinCommU = nodeU.get(communities[u]);
-        var degreeVinCommV = nodeV.get(communities[v]);
-        var degreeUinCommV = nodeU.get(communities[v]);
-        var degreeVinCommU = nodeV.get(communities[u]);
+        var degreeUinCommU = getDegree(nodeU.get(communities[u]));
+        var degreeVinCommV = getDegree(nodeV.get(communities[v]));
+        var degreeUinCommV = getDegree(nodeU.get(communities[v]));
+        var degreeVinCommU = getDegree(nodeV.get(communities[u]));
         
         if(communityVolumes[communities[u]] == null)
         {
@@ -223,6 +222,8 @@ public class ClusteringExtension
         
         if((0 <= trueVolCommU && volCommU < MAX_COM_VOLUME) && (0 <= trueVolCommV && volCommV < MAX_COM_VOLUME))
         {
+            if (communities[u] == communities[v])
+                return;
             if(trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV <= MAX_COM_VOLUME)
             {
             	communityVolumes[communities[u]] -= degreeUinCommU;
@@ -251,7 +252,7 @@ public class ClusteringExtension
     {
         //nodes = new Node[VERTICES_COUNT];
     	nodeDegrees = new ArrayList<Map<Integer, Integer>>();
-        for (int i = 0; i < VERTICES_COUNT; i++) 
+        for (int i = 0; i < VERTICES_COUNT+1; i++) 
         {
             //nodes[i] = new Node(i);
             
@@ -377,6 +378,7 @@ public class ClusteringExtension
     	line.append("Edges count: "+ EDGES_COUNT + "\n");
     	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
         line.append("Max comminity volume: "+ MAX_COM_VOLUME + "\n");
+        line.append("Number of partitions: "+ NUM_PARTITIONS + "\n");
     	line.append("Total " + totalCommunities + " communities found"+ "\n");
     	
     	line.append("--------------------------------------------------------------------------\n\n");
