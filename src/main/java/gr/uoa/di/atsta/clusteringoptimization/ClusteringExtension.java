@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.io.File;  
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,7 +51,7 @@ public class ClusteringExtension
     public static Map<Integer, List<String>> members; 
     public static int totalCommunities = 0;
     public static long totalDuration;
-    public static List<Map<Integer, Integer>> nodeDegrees;
+    //public static Map<Integer, Integer>[] nodeDegrees = new Map<Integer, Integer>[VERTICES_COUNT];
 
     public static void main(String args[]) throws IOException   
     {   
@@ -73,7 +72,7 @@ public class ClusteringExtension
         String splitBy = ",";  
         try   
         {  
-            var edgesProcessed = 0;
+            //var edgesProcessed = 0;
             BufferedReader br = new BufferedReader(new FileReader(filename));  
             while ((line = br.readLine()) != null) 
             {  
@@ -82,7 +81,7 @@ public class ClusteringExtension
                 var v = Integer.parseInt(edge[1]);
                 updatePartialDegree(w, v);
                 
-                edgesProcessed++;
+               // edgesProcessed++;
 
                 //if (edgesProcessed%WINDOW_SIZE == 0)
                   //  pruneCommunities();
@@ -102,11 +101,10 @@ public class ClusteringExtension
         {
             nodes[i].pruneCommunities(4);
         }*/
-        
-    	nodeDegrees.parallelStream().forEach(
-                (node) -> {
-                    Node.findGreatest(node, 4);
-                });
+    	// nodeDegrees.parallelStream().forEach(
+        //         (node) -> {
+        //             Node.findGreatest(node, 4);
+        //         });
     }
     
     private static void findCommunities()
@@ -140,12 +138,12 @@ public class ClusteringExtension
 	
     public static void updatePartialDegree(int u, int v)
     {
-    	/*
         var nodeU = nodes[u];
         var nodeV = nodes[v];
-        */
-        var nodeU = nodeDegrees.get(u);
-        var nodeV = nodeDegrees.get(v);
+        
+        //nodeDegrees 
+        // var nodeU = nodeDegrees.get(u);
+        // var nodeV = nodeDegrees.get(v);
         
         if(communities[u] == null)
         {
@@ -158,39 +156,47 @@ public class ClusteringExtension
             maxCommunityId++;
         }
         
-        /*
+        
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
         var degreeUinCommV = nodeU.getDegrees(communities[v]);
         var degreeVinCommU = nodeV.getDegrees(communities[u]);
 
-*/
-        if (nodeU.size() > 50)
-        	 Node.findGreatest(nodeU, 4);
+
+        // if (nodeU.size() > 50)
+        // 	 Node.findGreatest(nodeU, 4);
         
-        if (nodeV.size() > 50)
-            Node.findGreatest(nodeV, 4);
+        // if (nodeV.size() > 50)
+        //     Node.findGreatest(nodeV, 4);
         
+        /*/
         var degreeUinCommU = nodeU.get(communities[u]);
         var degreeVinCommV = nodeV.get(communities[v]);
         var degreeUinCommV = nodeU.get(communities[v]);
         var degreeVinCommU = nodeV.get(communities[u]);
-        
-        nodeU.put(communities[v], getDegree(degreeUinCommV) + 1);
-        nodeV.put(communities[v], getDegree(degreeVinCommV) + 1);
-        nodeV.put(communities[u], getDegree(degreeVinCommU) + 1);
-        nodeU.put(communities[u], getDegree(degreeUinCommU) + 1);
+        */
+        // nodeU.put(communities[v], getDegree(degreeUinCommV) + 1);
+        // nodeV.put(communities[v], getDegree(degreeVinCommV) + 1);
+        // nodeV.put(communities[u], getDegree(degreeVinCommU) + 1);
+        // nodeU.put(communities[u], getDegree(degreeUinCommU) + 1);
+
+        nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
+        nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
+        nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
+        nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
         
     }
     
 
     public static void findEdgeCommunity(int u, int v)
     {
-        //var nodeU = nodes[u];
-        //var nodeV = nodes[v];
+        var nodeU = nodes[u];
+        var nodeV = nodes[v];
        
-        var nodeU = nodeDegrees.get(u);
-        var nodeV = nodeDegrees.get(v);
+        /*
+                var nodeU = nodeDegrees[u];
+        var nodeV = nodeDegrees[v];
+        */
         /*
         var degreeUinCommU = nodeU.getDegrees(communities[u]);
         var degreeVinCommV = nodeV.getDegrees(communities[v]);
@@ -199,11 +205,15 @@ public class ClusteringExtension
         
         */
         
-        
-        var degreeUinCommU = getDegree(nodeU.get(communities[u]));
-        var degreeVinCommV = getDegree(nodeV.get(communities[v]));
-        var degreeUinCommV = getDegree(nodeU.get(communities[v]));
-        var degreeVinCommU = getDegree(nodeV.get(communities[u]));
+        // var degreeUinCommU = getDegree(nodeU.get(communities[u]));
+        // var degreeVinCommV = getDegree(nodeV.get(communities[v]));
+        // var degreeUinCommV = getDegree(nodeU.get(communities[v]));
+        // var degreeVinCommU = getDegree(nodeV.get(communities[u]));
+
+        var degreeUinCommU = nodeU.getDegrees(communities[u]);
+        var degreeVinCommV = nodeV.getDegrees(communities[v]);
+        var degreeUinCommV = nodeU.getDegrees(communities[v]);
+        var degreeVinCommU = nodeV.getDegrees(communities[u]);
         
         if(communityVolumes[communities[u]] == null)
         {
@@ -250,13 +260,12 @@ public class ClusteringExtension
 
     private static void initEdgeNodes()
     {
-        //nodes = new Node[VERTICES_COUNT];
-    	nodeDegrees = new ArrayList<Map<Integer, Integer>>();
+        nodes = new Node[VERTICES_COUNT];
+    	
         for (int i = 0; i < VERTICES_COUNT+1; i++) 
-        {
-            //nodes[i] = new Node(i);
-            
-            nodeDegrees.add(new HashMap<Integer, Integer>());
+        {      
+            nodes[i] = new Node(i);      
+            //nodeDegrees[i] = new HashMap<Integer, Integer>();
         }
     }
    
