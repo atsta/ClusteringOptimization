@@ -262,7 +262,7 @@ public class ClusteringExtension
     {
         nodes = new Node[VERTICES_COUNT];
     	
-        for (int i = 0; i < VERTICES_COUNT+1; i++) 
+        for (int i = 0; i < VERTICES_COUNT; i++) 
         {      
             nodes[i] = new Node(i);      
             //nodeDegrees[i] = new HashMap<Integer, Integer>();
