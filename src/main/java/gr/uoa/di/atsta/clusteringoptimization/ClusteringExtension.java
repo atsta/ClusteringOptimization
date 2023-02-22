@@ -26,7 +26,7 @@ public class ClusteringExtension
     final static int NUM_PARTITIONS = 10;
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
-    final static int WINDOW_SIZE = 50;
+    //final static int WINDOW_SIZE = 50;
     public static String filename = "small_dataset.csv";
     
 	
@@ -57,7 +57,7 @@ public class ClusteringExtension
     {   
         Instant start = Instant.now();
         initEdgeNodes();
-        findPartialDegrees();
+        //findPartialDegrees();
         findCommunities();
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
@@ -120,7 +120,7 @@ public class ClusteringExtension
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                findEdgeCommunity(w, v);
+                findCommunities(w, v);
             }  
         }   
         catch (IOException e)   
@@ -130,11 +130,75 @@ public class ClusteringExtension
     }
     
 
-	private static Integer getDegree(Integer degreeInComm) {
-        if (degreeInComm == null)
-            return 0;
-        return degreeInComm;   
-	}
+    public static void findCommunities(int u, int v)
+    {
+        var nodeU = nodes[u];
+        var nodeV = nodes[v];
+        
+        if(communities[u] == null)
+        {
+            communities[u] = maxCommunityId;
+            communityVolumes[maxCommunityId]=1;
+            maxCommunityId++;
+            nodeU.updateDegrees(communities[u],1);
+        }
+        if(communities[v] == null)
+        {
+            communities[v] = maxCommunityId;
+            communityVolumes[maxCommunityId]=1;
+            maxCommunityId++;
+            nodeV.updateDegrees(communities[v], 1);
+        }
+        
+        // if (communities[u] == communities[v])
+        // 	return;
+        
+        var degreeUinCommU = nodeU.getDegrees(communities[u]);
+        var degreeVinCommV = nodeV.getDegrees(communities[v]);
+       
+        var volCommU = communityVolumes[communities[u]];
+        var volCommV = communityVolumes[communities[v]];
+        
+        var degreeUinCommV = nodeU.getDegrees(communities[v]);
+        var degreeVinCommU = nodeV.getDegrees(communities[u]);
+
+        var trueVolCommU = volCommU - degreeUinCommU;
+        var trueVolCommV = volCommV - degreeVinCommV;
+
+        if((0 <= volCommU && volCommU < MAX_COM_VOLUME) && (0 <= volCommV && volCommV < MAX_COM_VOLUME))
+        {
+            if(0 <= trueVolCommU && trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV + 1 < MAX_COM_VOLUME)
+            {
+            	communityVolumes[communities[u]]-=1;
+                communityVolumes[communities[v]]+=2;
+                nodeU.updateDegrees(communities[v], degreeUinCommV + 1);
+                nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
+                
+                //nodeU.updateDegrees(communities[u], degreeUinCommU - 1);
+                //nodeV.updateDegrees(communities[u], degreeVinCommU - 1);
+                
+                communities[u] = communities[v];
+            }
+            else if (0 <= trueVolCommV && trueVolCommV < trueVolCommU && volCommU + degreeVinCommU + 1< MAX_COM_VOLUME) 
+            {
+            	communityVolumes[communities[v]]-=1;                
+                communityVolumes[communities[u]]+=2;
+                nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
+                nodeU.updateDegrees(communities[u], degreeUinCommU + 1);
+
+                //nodeV.updateDegrees(communities[v], degreeVinCommV - 1);
+                //nodeU.updateDegrees(communities[v], degreeUinCommV - 1);
+                
+                communities[v] = communities[u];
+            }
+        }
+    }
+
+	// private static Integer getDegree(Integer degreeInComm) {
+    //     if (degreeInComm == null)
+    //         return 0;
+    //     return degreeInComm;   
+	// }
 	
     public static void updatePartialDegree(int u, int v)
     {
@@ -265,7 +329,6 @@ public class ClusteringExtension
         for (int i = 0; i < VERTICES_COUNT; i++) 
         {      
             nodes[i] = new Node(i);      
-            //nodeDegrees[i] = new HashMap<Integer, Integer>();
         }
     }
    

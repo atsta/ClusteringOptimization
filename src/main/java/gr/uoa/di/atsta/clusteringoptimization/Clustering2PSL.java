@@ -19,7 +19,7 @@ public class Clustering2PSL
     public static String filename = "dataset.csv";
     */
     
-    final static int NUM_PARTITIONS = 4;
+    final static int NUM_PARTITIONS = 10;
     public static String filename = "small_dataset.csv";
     final static int VERTICES_COUNT = 40;
     final static int EDGES_COUNT = 560;
