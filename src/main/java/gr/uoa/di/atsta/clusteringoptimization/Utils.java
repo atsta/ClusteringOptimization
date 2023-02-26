@@ -134,9 +134,15 @@ public final class Utils
         //conductance score
         for (Integer community : validCommunities) 
     	{
-    		var denominator = Math.min(communityVolumes[community], EDGES_COUNT - communityVolumes[community]);
+    		int denominator = Math.min(communityVolumes[community], denominatorFactor - communityVolumes[community]);
             if (denominator != 0)
-                conductanceScores[community] = (double) externalDegrees[community] / denominator;
+			{
+                double res = ((double)externalDegrees[community]) / denominator;
+				conductanceScores[community] = res;
+				// System.out.println(externalDegrees[community]);
+				// System.out.println(denominator);
+				// System.out.println(res);
+			}
     	}
 
         //coverage score 
@@ -145,7 +151,10 @@ public final class Utils
             var totalDegree = internalDegrees[community] + externalDegrees[community];
             if (totalDegree != 0)
             {
-                coverageScores[community] = (double) internalDegrees[community] / totalDegree;
+                double res = ((double)internalDegrees[community]) / totalDegree;
+				coverageScores[community] = res;
+				// System.out.println(internalDegrees[community]);
+				// System.out.println(totalDegree);
             }
     	}
     }
@@ -161,18 +170,19 @@ public final class Utils
     	line.append("Edges count: "+ EDGES_COUNT + "\n");
     	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
         line.append("Number of partitions: "+ NUM_PARTITIONS + "\n");
-    	line.append("Total " + totalCommunities + " communities found"+ "\n");
+    	line.append("Total " + totalCommunities + " communities found"+ "\n\n");
     	
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	//Time
-    	line.append("Total duration: "+ totalDuration/1000 + " seconds"+ "\n");
+		line.append("Total duration: "+ totalDuration + " milliseconds"+ "\n");
+    	line.append("Total duration: "+ totalDuration/1000 + " seconds"+ "\n\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	//Quality
-    	var sumCoverage = 0;
-    	var sumConductance = 0;
+    	double sumCoverage = 0.0;
+    	double sumConductance = 0.0;
     	var sumInternalDegrees = 0;
     	var sumExternalDegrees = 0;
         for (Integer community : validCommunities) 
@@ -182,10 +192,10 @@ public final class Utils
         	sumInternalDegrees += internalDegrees[community];
         	sumExternalDegrees += externalDegrees[community];
     	}
-    	line.append("Average coverage: "+ sumCoverage + "\n");
-    	line.append("Average conductance: "+ sumConductance + "\n");
+    	line.append("Average coverage: "+ sumCoverage/totalCommunities + "\n");
+    	line.append("Average conductance: "+ sumConductance/totalCommunities + "\n");
     	line.append("Sum internal degrees: "+ sumInternalDegrees + "\n");
-    	line.append("Sum external degrees: "+ sumExternalDegrees + "\n");
+    	line.append("Sum external degrees: "+ sumExternalDegrees + "\n\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
     	
@@ -195,6 +205,10 @@ public final class Utils
     		line = new StringBuilder();
         	line.append("Community id: " + i + "\n");
         	line.append("Size: " + communityVolumes[i] + "\n");
+			line.append("Conductance: " + conductanceScores[i] + "\n");
+        	line.append("Coverage: " + coverageScores[i] + "\n");
+			line.append("Internal degrees: " + internalDegrees[i] + "\n");
+        	line.append("External degrees: " + externalDegrees[i] + "\n");
         	line.append("Members: ");
         	line.append(String.join(",", members.get(i)));
     	    line.append("\n\n");

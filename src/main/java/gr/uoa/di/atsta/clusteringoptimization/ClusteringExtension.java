@@ -18,15 +18,15 @@ public class ClusteringExtension
     public static void main(String args[]) throws IOException   
     {   
         Instant start = Instant.now();
-        MAX_COM_VOLUME = Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
+        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
         communities = new Integer[Utils.VERTICES_COUNT];
         communityVolumes = new Integer[Utils.VERTICES_COUNT];
         initEdgeNodes();
-        //findPartialDegrees();
+        findPartialDegrees();
         findCommunities();
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_extension.txt", Utils.EDGES_COUNT, totalDuration, communities, communityVolumes);
+        Utils utils = new Utils("results_extension.txt", 2*Utils.EDGES_COUNT, totalDuration, communities, communityVolumes);
         utils.Evaluate();
     }   
     
@@ -39,30 +39,30 @@ public class ClusteringExtension
         }
     }
 
-    // private static void findPartialDegrees()
-    // {
-    //     String line = "";  
-    //     String splitBy = ",";  
-    //     try   
-    //     {  
-    //         //var edgesProcessed = 0;
-    //         BufferedReader br = new BufferedReader(new FileReader(filename));  
-    //         while ((line = br.readLine()) != null) 
-    //         {  
-    //             String[] edge = line.split(splitBy);   
-    //             var w = Integer.parseInt(edge[0]);
-    //             var v = Integer.parseInt(edge[1]);
-    //             updatePartialDegree(w, v);
-    //             //edgesProcessed++;
-    //             // if (edgesProcessed%WINDOW_SIZE == 0)
-    //             //   pruneCommunities();
-    //         }  
-    //     }   
-    //     catch (IOException e)   
-    //     {  
-    //         e.printStackTrace();  
-    //     }   
-    // }
+    private static void findPartialDegrees()
+    {
+        String line = "";  
+        String splitBy = ",";  
+        try   
+        {  
+            //var edgesProcessed = 0;
+            BufferedReader br = new BufferedReader(new FileReader(Utils.DATASET));  
+            while ((line = br.readLine()) != null) 
+            {  
+                String[] edge = line.split(splitBy);   
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                updatePartialDegree(w, v);
+                //edgesProcessed++;
+                // if (edgesProcessed%WINDOW_SIZE == 0)
+                //   pruneCommunities();
+            }  
+        }   
+        catch (IOException e)   
+        {  
+            e.printStackTrace();  
+        }   
+    }
     
     // private static void pruneCommunities() 
     // {
@@ -85,8 +85,8 @@ public class ClusteringExtension
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                //findEdgeCommunity(w, v);
-                findCommunities(w, v);
+                findEdgeCommunity(w, v);
+                //findCommunities(w, v);
             }  
         }   
         catch (IOException e)   
