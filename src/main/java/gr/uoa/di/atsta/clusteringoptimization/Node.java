@@ -35,7 +35,6 @@ public class Node
 
     public void pruneCommunities(int size) {
 		this.communityDegrees = findGreatest(this.communityDegrees, size);
-    	//this.communityDegrees = new HashMap<Integer, Integer>();
 	}
 
     public static <K, V extends Comparable<? super V>> Map<K, V> 

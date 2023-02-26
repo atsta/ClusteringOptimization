@@ -1,30 +1,165 @@
 package gr.uoa.di.atsta.clusteringoptimization;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class Utils 
+public final class Utils 
 {
-    public string resultsFileName;
-    public 
-    public Utils(string resultsFileName)
+	public final static int NUM_PARTITIONS = 5000;
+    public final static int VERTICES_COUNT = 600000;
+    public final static int EDGES_COUNT = 925872;
+	//public final static int WINDOW_SIZE = 10000;
+    public static String DATASET = "amazon_dataset.csv";
+
+	public String resultsFile;
+	public int denominatorFactor;
+	public long totalDuration;
+	public Integer[] communities;
+    private Integer[] communityVolumes;
+    public Utils(String resultsFile, int denominatorFactor, long totalDuration, Integer[] communities, Integer[] communityVolumes) 
+	{
+		this.resultsFile = resultsFile;
+		this.denominatorFactor = denominatorFactor;
+		this.totalDuration = totalDuration;
+		this.communities = communities;
+		this.communityVolumes = communityVolumes;
+	}
+
+	public void Evaluate() throws IOException  
+	{
+		this.evaluateCommunities();
+        this.writeResultsToFile();
+	}
+
+    private double[] coverageScores;
+    private double[] conductanceScores;
+	private Integer[] externalDegrees;
+    private Integer[] internalDegrees;
+    private int totalCommunities = 0;
+	private Set<Integer> validCommunities;
+    private Map<Integer, List<String>> members; 
+	
+	private void evaluateCommunities() 
     {
-        this.resultsFileName = resultsFileName;
+        initExternalDegrees();
+        String line = "";  
+        String splitBy = ",";  
+        try   
+        {  
+            BufferedReader br = new BufferedReader(new FileReader(DATASET));  
+            while ((line = br.readLine()) != null) 
+            {  
+                String[] edge = line.split(splitBy);   
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                calculateExternalDegree(w, v);
+            }  
+        }   
+        catch (IOException e)   
+        {  
+            e.printStackTrace();  
+        }   
+        filterValidComnmunities();
+        calculateQualityScores();
     }
 
-    private static double[] coverageScores;
-    private static double[] conductanceScores;
-    private static Integer[] communities = new Integer[VERTICES_COUNT];
-    private static Integer[] communityVolumes = new Integer[VERTICES_COUNT];
-
-    public static void writeResultsToFile() throws IOException
+	private void initExternalDegrees()
     {
-    	File txtfile = new File("results_extension.txt");
+        externalDegrees = new Integer[VERTICES_COUNT];
+        internalDegrees = new Integer[VERTICES_COUNT];
+		conductanceScores = new double[VERTICES_COUNT];
+		coverageScores = new double[VERTICES_COUNT];
+        for (int i = 0; i < VERTICES_COUNT; i++) 
+        {
+            externalDegrees[i] = 0;
+            internalDegrees[i] = 0;
+            conductanceScores[i] = 0;
+            coverageScores[i] = 0;      
+        }
+    }
+
+	private void calculateExternalDegree(int u, int v)
+    {
+        var comU = communities[u];
+		var comV = communities[v];
+
+		if (comU != comV)
+        {
+			externalDegrees[comU]++;
+			externalDegrees[comV]++;
+        }
+        else
+        {
+            internalDegrees[comU]+=2;
+        }
+    }
+
+	private void filterValidComnmunities()
+    {
+    	validCommunities = new HashSet<>();
+        for (int i = 1; i < VERTICES_COUNT; i++) 
+        {
+           if (communities[i] == null)
+                continue;
+           
+           if (validCommunities.contains(communities[i]))
+        	   continue;
+           
+           validCommunities.add(communities[i]);
+           totalCommunities++;
+        }
+        members = new HashMap<>();
+    	for (Integer community : validCommunities) 
+    	{
+    		members.put(community, new ArrayList<>());
+    	}
+    	for (Integer i = 1; i < VERTICES_COUNT; i++) 
+        {
+            if (communities[i] == null)
+                continue;
+    		members.get(communities[i]).add(i.toString());
+        }
+    }
+
+	private void calculateQualityScores() 
+    {
+        //conductance score
+        for (Integer community : validCommunities) 
+    	{
+    		var denominator = Math.min(communityVolumes[community], EDGES_COUNT - communityVolumes[community]);
+            if (denominator != 0)
+                conductanceScores[community] = (double) externalDegrees[community] / denominator;
+    	}
+
+        //coverage score 
+        for (Integer community : validCommunities) 
+    	{
+            var totalDegree = internalDegrees[community] + externalDegrees[community];
+            if (totalDegree != 0)
+            {
+                coverageScores[community] = (double) internalDegrees[community] / totalDegree;
+            }
+    	}
+    }
+
+    private void writeResultsToFile() throws IOException
+    {
+		String file = resultsFile;
+    	File txtfile = new File(file);
     	FileWriter fileWriter = new FileWriter(txtfile);
     	
     	StringBuilder line = new StringBuilder();
     	//Basic
     	line.append("Edges count: "+ EDGES_COUNT + "\n");
     	line.append("Vertices count: "+ VERTICES_COUNT + "\n");
-        line.append("Max comminity volume: "+ MAX_COM_VOLUME + "\n");
         line.append("Number of partitions: "+ NUM_PARTITIONS + "\n");
     	line.append("Total " + totalCommunities + " communities found"+ "\n");
     	
@@ -66,4 +201,5 @@ public class Utils
     	    fileWriter.write(line.toString());
 		}
     	fileWriter.close();
+	}
 }
