@@ -13,11 +13,15 @@ import java.util.Set;
 
 public final class Utils 
 {
+	// public final static int NUM_PARTITIONS = 5000;
+    // public final static int VERTICES_COUNT = 600000;
+    // public final static int EDGES_COUNT = 925872;
+    // public static String DATASET = "Datasets/amazon_dataset.csv";
+
 	public final static int NUM_PARTITIONS = 5000;
-    public final static int VERTICES_COUNT = 600000;
-    public final static int EDGES_COUNT = 925872;
-	//public final static int WINDOW_SIZE = 10000;
-    public static String DATASET = "amazon_dataset.csv";
+    public final static int VERTICES_COUNT = 430000;
+    public final static int EDGES_COUNT = 1049866;
+    public static String DATASET = "Datasets/dblp_dataset.csv";
 
 	public String resultsFile;
 	public int denominatorFactor;
