@@ -15,18 +15,18 @@ public class ClusteringExtension
     public static Integer[] communityVolumes;
     public static int maxCommunityId = 1;
     public static long totalDuration;
+
     public static void main(String args[]) throws IOException   
     {   
         Instant start = Instant.now();
-        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
+        MAX_COM_VOLUME = Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
         communities = new Integer[Utils.VERTICES_COUNT];
         communityVolumes = new Integer[Utils.VERTICES_COUNT];
         initEdgeNodes();
-        findPartialDegrees();
         findCommunities();
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_extension.txt", 2*Utils.EDGES_COUNT, totalDuration, communities, communityVolumes);
+        Utils utils = new Utils("results_extension.txt", 2*Utils.EDGES_COUNT, totalDuration, 0, communities, communityVolumes);
         utils.Evaluate();
     }   
     
@@ -37,31 +37,6 @@ public class ClusteringExtension
         {      
             nodes.add(new Node(i));      
         }
-    }
-
-    private static void findPartialDegrees()
-    {
-        String line = "";  
-        String splitBy = ",";  
-        try   
-        {  
-            //var edgesProcessed = 0;
-            BufferedReader br = new BufferedReader(new FileReader(Utils.DATASET));  
-            while ((line = br.readLine()) != null) 
-            {  
-                String[] edge = line.split(splitBy);   
-                var w = Integer.parseInt(edge[0]);
-                var v = Integer.parseInt(edge[1]);
-                updatePartialDegree(w, v);
-                //edgesProcessed++;
-                // if (edgesProcessed%WINDOW_SIZE == 0)
-                //   pruneCommunities();
-            }  
-        }   
-        catch (IOException e)   
-        {  
-            e.printStackTrace();  
-        }   
     }
     
     // private static void pruneCommunities() 
@@ -85,8 +60,7 @@ public class ClusteringExtension
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                findEdgeCommunity(w, v);
-                //findCommunities(w, v);
+                findCommunities(w, v);
             }  
         }   
         catch (IOException e)   
@@ -173,47 +147,5 @@ public class ClusteringExtension
         nodeV.updateDegrees(communities[v], degreeVinCommV + 1);
         nodeV.updateDegrees(communities[u], degreeVinCommU + 1);
         nodeU.updateDegrees(communities[u], degreeUinCommU + 1);    
-    }
-    
-    public static void findEdgeCommunity(int u, int v)
-    {
-        var nodeU = nodes.get(u);
-        var nodeV = nodes.get(v);
-    
-        var degreeUinCommU = nodeU.getDegrees(communities[u]);
-        var degreeVinCommV = nodeV.getDegrees(communities[v]);
-        var degreeUinCommV = nodeU.getDegrees(communities[v]);
-        var degreeVinCommU = nodeV.getDegrees(communities[u]);
-        
-        if(communityVolumes[communities[u]] == null)
-        {
-            communityVolumes[communities[u]] = degreeUinCommU;
-        }
-        if(communityVolumes[communities[v]] == null)
-        {
-            communityVolumes[communities[v]] = degreeVinCommV;
-        }
-        
-        var volCommU = communityVolumes[communities[u]];
-        var volCommV = communityVolumes[communities[v]];
-        
-        var trueVolCommU = volCommU - degreeUinCommU;
-        var trueVolCommV = volCommV - degreeVinCommV;
-        
-        if((0 <= trueVolCommU && volCommU < MAX_COM_VOLUME) && (0 <= trueVolCommV && volCommV < MAX_COM_VOLUME))
-        {
-            if(trueVolCommU <= trueVolCommV && volCommV + degreeUinCommV <= MAX_COM_VOLUME)
-            {
-            	communityVolumes[communities[u]] -= degreeUinCommU;
-                communityVolumes[communities[v]] += degreeUinCommV;
-                communities[u] = communities[v];
-            }
-            else if (trueVolCommV < trueVolCommU && volCommU + degreeVinCommU <= MAX_COM_VOLUME) 
-            {
-            	communityVolumes[communities[v]] -= degreeVinCommV;
-                communityVolumes[communities[u]] += degreeVinCommU;                
-                communities[v] = communities[u];
-            }
-        }
     }
 }  

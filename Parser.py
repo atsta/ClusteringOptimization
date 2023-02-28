@@ -30,6 +30,7 @@ with gzip.open('dblp.txt.gz', "rt") as f:
         row = [fields[0], fields[1]]
         importcsv.writerow(row)
 
+#remove empty lines
 with open('dblp_dataset_1.csv', newline='') as in_file:
     with open('dblp_dataset.csv', 'w', newline='') as out_file:
         writer = csv.writer(out_file)

@@ -13,26 +13,30 @@ import java.util.Set;
 
 public final class Utils 
 {
-	// public final static int NUM_PARTITIONS = 5000;
-    // public final static int VERTICES_COUNT = 600000;
-    // public final static int EDGES_COUNT = 925872;
-    // public static String DATASET = "Datasets/amazon_dataset.csv";
-
 	public final static int NUM_PARTITIONS = 5000;
-    public final static int VERTICES_COUNT = 430000;
-    public final static int EDGES_COUNT = 1049866;
-    public static String DATASET = "Datasets/dblp_dataset.csv";
+    public final static int VERTICES_COUNT = 600000;
+    public final static int EDGES_COUNT = 925872;
+    public static String DATASET = "Datasets/amazon_dataset.csv";
+	//public static String DATASET = "Datasets/amazon_dataset_shuffled.csv";
+
+	// public final static int NUM_PARTITIONS = 5000;
+    // public final static int VERTICES_COUNT = 430000;
+    // public final static int EDGES_COUNT = 1049866;
+    // //public static String DATASET = "Datasets/dblp_dataset.csv";
+    // public static String DATASET = "Datasets/dblp_dataset_shuffled.csv";
 
 	public String resultsFile;
 	public int denominatorFactor;
 	public long totalDuration;
+	public long degreeCalcDuration;
 	public Integer[] communities;
     private Integer[] communityVolumes;
-    public Utils(String resultsFile, int denominatorFactor, long totalDuration, Integer[] communities, Integer[] communityVolumes) 
+    public Utils(String resultsFile, int denominatorFactor, long totalDuration, long degreeCalcDuration, Integer[] communities, Integer[] communityVolumes) 
 	{
 		this.resultsFile = resultsFile;
 		this.denominatorFactor = denominatorFactor;
 		this.totalDuration = totalDuration;
+		this.degreeCalcDuration = degreeCalcDuration;
 		this.communities = communities;
 		this.communityVolumes = communityVolumes;
 	}
@@ -179,6 +183,12 @@ public final class Utils
     	line.append("--------------------------------------------------------------------------\n\n");
     	
     	//Time
+		line.append("Degree calculation duration: "+ degreeCalcDuration + " milliseconds"+ "\n");
+		line.append("Degree calculation duration: "+ degreeCalcDuration/1000 + " seconds"+ "\n\n");
+
+		line.append("Community detection duration: "+ (totalDuration - degreeCalcDuration) + " milliseconds"+ "\n");
+    	line.append("Community detection duration: "+ (totalDuration - degreeCalcDuration)/1000 + " seconds"+ "\n\n");
+
 		line.append("Total duration: "+ totalDuration + " milliseconds"+ "\n");
     	line.append("Total duration: "+ totalDuration/1000 + " seconds"+ "\n\n");
 
