@@ -35,6 +35,7 @@ public:
     std::vector<double> get_quality_scores();
     void do_streamcom(std::vector<edge_t> &edges);
     void do_streamcom_extension(std::vector<edge_t> &edges);
+    void do_streamcom_extension2(std::vector<edge_t> &edges);
     void do_communities_evaluation(std::vector<edge_t> &edges);
     typedef std::vector<std::pair<uint64_t, uint32_t>> sort_communities();
 };

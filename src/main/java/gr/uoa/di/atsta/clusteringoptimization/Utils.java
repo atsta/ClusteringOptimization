@@ -142,10 +142,11 @@ public final class Utils
         //conductance score
         for (Integer community : validCommunities) 
     	{
-    		int denominator = Math.min(communityVolumes[community], denominatorFactor - communityVolumes[community]);
-            if (denominator != 0)
+			var totalDegree = internalDegrees[community] + externalDegrees[community];
+    		//int denominator = Math.min(communityVolumes[community], denominatorFactor - communityVolumes[community]);
+            if (totalDegree != 0)
 			{
-                double res = ((double)externalDegrees[community]) / denominator;
+                double res = ((double)externalDegrees[community]) / totalDegree;
 				conductanceScores[community] = res;
 				// System.out.println(externalDegrees[community]);
 				// System.out.println(denominator);

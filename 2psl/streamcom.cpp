@@ -41,6 +41,11 @@ void eval_com_forwarder(void* object, std::vector<edge_t> edges)
     static_cast<Streamcom*>(object)->do_communities_evaluation(edges);
 }
 
+void find_com_forwarder_extension2(void* object, std::vector<edge_t> edges)
+{
+    static_cast<Streamcom*>(object)->do_streamcom_extension2(edges);
+}
+
 std::vector<uint32_t> Streamcom::find_communities()
 {
     // Decreasing community volume in the first run.
@@ -53,6 +58,9 @@ std::vector<uint32_t> Streamcom::find_communities()
     {
         case -1: 
             globals.read_and_do(find_com_forwarder_extension, this, "communities (extension)");
+            break;
+        case -2:
+            globals.read_and_do(find_com_forwarder_extension2, this, "communities (extension)");
             break;
         case 1:
 //            globals.MAX_COM_VOLUME *= 0.8;
@@ -87,6 +95,7 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 {
     Timer timer1;
     timer1.start();
+    uint64_t max_com_volume_extension = globals.NUM_EDGES/globals.NUM_PARTITIONS;
     for (auto& edge : edges)
     {
         auto u = edge.first;
@@ -103,12 +112,14 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
             com_u = next_community_id;
             volumes[com_u] = 1;
             ++next_community_id;
+            nodeU.updateDegrees(com_u, 1);
         }
         if(com_v == 0)
         {
             com_v = next_community_id;
             volumes[com_v] = 1;
             ++next_community_id;
+            nodeV.updateDegrees(com_v, 1);
         }
 
         auto& vol_u = volumes[com_u];
@@ -128,28 +139,117 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
         if (real_vol_u < 0) real_vol_u = 0;
         if (real_vol_v < 0) real_vol_v = 0;
 
-        if((vol_u <= globals.MAX_COM_VOLUME) && (vol_v <= globals.MAX_COM_VOLUME))
+        if((0 <= vol_u && vol_u <= max_com_volume_extension) && (0 <= vol_v && vol_v <= max_com_volume_extension))
         {
-            if(real_vol_u <= real_vol_v && vol_v + degreeUinCommV + 1 <= globals.MAX_COM_VOLUME){
+            if(real_vol_u <= real_vol_v && vol_v + degreeUinCommV + 2 <= max_com_volume_extension){
                 vol_u -= degreeUinCommU;
-                vol_v += degreeUinCommV + 1;
+                vol_v += degreeUinCommV + 2;
                 nodeU.updateDegrees(com_v, degreeUinCommV + 1);
                 nodeV.updateDegrees(com_v, degreeVinCommV + 1);
-                //nodeV.communityDegrees[com_v] += 1;
                 communities[u] = communities[v];
             }
-            else if (real_vol_v < real_vol_u && vol_u + degreeVinCommU + 1 <= globals.MAX_COM_VOLUME) {
+            else if (real_vol_v < real_vol_u && vol_u + degreeVinCommU + 2 <= max_com_volume_extension) {
                 vol_v -= degreeVinCommV;
-                vol_u += degreeVinCommU + 1;
+                vol_u += degreeVinCommU + 2;
                 nodeU.updateDegrees(com_u, degreeUinCommU + 1);
                 nodeV.updateDegrees(com_u, degreeVinCommU + 1);
-                //nodeV.communityDegrees[com_u] += 1;
                 communities[v] = communities[u];
             }
         }
     }
     timer1.stop();
     LOG(INFO) << "Runtime for extension [sec]: " << timer1.get_time(); 
+}
+
+void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
+{
+    Timer timer2;
+    timer2.start();
+    uint64_t max_com_volume_extension = globals.NUM_EDGES/globals.NUM_PARTITIONS;
+    //calc partial degrees
+    for (auto& edge : edges)
+    {
+        auto u = edge.first;
+        auto v = edge.second;
+
+        auto& com_u = communities[u];
+        auto& com_v = communities[v];
+
+        auto& nodeU = nodes[u];
+        auto& nodeV = nodes[v];
+
+        if(com_u == 0)
+        {
+            com_u = next_community_id;
+            ++next_community_id;
+        }
+        if(com_v == 0)
+        {
+            com_v = next_community_id;
+            ++next_community_id;
+        }
+
+        auto degreeUinCommU = nodeU.getDegrees(com_u);
+        auto degreeUinCommV = nodeU.getDegrees(com_v);
+        auto degreeVinCommV = nodeV.getDegrees(com_v);
+        auto degreeVinCommU = nodeV.getDegrees(com_u);
+
+        nodeU.updateDegrees(com_v, degreeUinCommV + 1);
+        nodeU.updateDegrees(com_u, degreeUinCommU + 1);
+        nodeV.updateDegrees(com_v, degreeVinCommV + 1);
+        nodeV.updateDegrees(com_u, degreeUinCommU + 1);
+    }
+
+    for (auto& edge : edges)
+    {
+        auto u = edge.first;
+        auto v = edge.second;
+
+        auto& com_u = communities[u];
+        auto& com_v = communities[v];
+
+        auto& nodeU = nodes[u];
+        auto& nodeV = nodes[v];
+
+        auto degreeUinCommU = nodeU.getDegrees(com_u);
+        auto degreeUinCommV = nodeU.getDegrees(com_v);
+        auto degreeVinCommV = nodeV.getDegrees(com_v);
+        auto degreeVinCommU = nodeV.getDegrees(com_u);
+
+        if(volumes[com_u] == 0)
+        {
+            volumes[com_u] = degreeUinCommU;
+        }
+        if(volumes[com_v] == 0)
+        {
+            volumes[com_v] = degreeVinCommV;
+        }
+
+        auto& vol_u = volumes[com_u];
+        auto& vol_v = volumes[com_v];
+
+        auto real_vol_u = vol_u - degreeUinCommU;
+        auto real_vol_v = vol_v - degreeVinCommV;
+        if (real_vol_u < 0) real_vol_u = 0;
+        if (real_vol_v < 0) real_vol_v = 0;
+
+        if((0 <= vol_u && vol_u <= max_com_volume_extension) && (0 <= vol_v && vol_v <= max_com_volume_extension))
+        {
+            if(real_vol_u <= real_vol_v && vol_v + degreeUinCommV <= max_com_volume_extension){
+                vol_u -= degreeUinCommU;
+                vol_v += degreeUinCommV;
+                communities[u] = communities[v];
+            }
+            else if (real_vol_v < real_vol_u && vol_u + degreeVinCommU  <= max_com_volume_extension) {
+                vol_v -= degreeVinCommV;
+                vol_u += degreeVinCommU;
+                communities[v] = communities[u];
+            }
+        }
+    }
+
+    timer2.stop();
+    LOG(INFO) << "Runtime for extension 2 [sec]: " << timer2.get_time(); 
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
