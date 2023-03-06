@@ -165,7 +165,7 @@ void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 {
     Timer timer2;
     timer2.start();
-    uint64_t max_com_volume_extension = globals.NUM_EDGES/globals.NUM_PARTITIONS;
+    uint64_t max_com_volume_extension = 2*globals.NUM_EDGES/globals.NUM_PARTITIONS;
     //calc partial degrees
     for (auto& edge : edges)
     {
@@ -197,7 +197,7 @@ void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
         nodeU.updateDegrees(com_v, degreeUinCommV + 1);
         nodeU.updateDegrees(com_u, degreeUinCommU + 1);
         nodeV.updateDegrees(com_v, degreeVinCommV + 1);
-        nodeV.updateDegrees(com_u, degreeUinCommU + 1);
+        nodeV.updateDegrees(com_u, degreeVinCommU + 1);
     }
 
     for (auto& edge : edges)
@@ -250,6 +250,11 @@ void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 
     timer2.stop();
     LOG(INFO) << "Runtime for extension 2 [sec]: " << timer2.get_time(); 
+}
+
+void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
+{
+   
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
