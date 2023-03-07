@@ -16,8 +16,8 @@ public final class Utils
 	public final static int NUM_PARTITIONS = 5000;
     public final static int VERTICES_COUNT = 600000;
     public final static int EDGES_COUNT = 925872;
-    public static String DATASET = "Datasets/amazon_dataset.csv";
-	//public static String DATASET = "Datasets/amazon_dataset_shuffled.csv";
+    //public static String DATASET = "Datasets/amazon_dataset.csv";
+	public static String DATASET = "Datasets/amazon_dataset_shuffled.csv";
 
 	// public final static int NUM_PARTITIONS = 5000;
     // public final static int VERTICES_COUNT = 430000;
@@ -219,7 +219,8 @@ public final class Utils
     	{
     		line = new StringBuilder();
         	line.append("Community id: " + i + "\n");
-        	line.append("Size: " + communityVolumes[i] + "\n");
+			if (communityVolumes != null)
+        		line.append("Size: " + communityVolumes[i] + "\n");
 			line.append("Conductance: " + conductanceScores[i] + "\n");
         	line.append("Coverage: " + coverageScores[i] + "\n");
 			line.append("Internal degrees: " + internalDegrees[i] + "\n");
