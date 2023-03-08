@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +17,8 @@ public final class Utils
 	public final static int NUM_PARTITIONS = 5000;
     public final static int VERTICES_COUNT = 600000;
     public final static int EDGES_COUNT = 925872;
-    //public static String DATASET = "Datasets/amazon_dataset.csv";
-	public static String DATASET = "Datasets/amazon_dataset_shuffled.csv";
+	public static String DATASET_NAME = "amazon_dataset_shuffled";
+	public static String DATASET = "Datasets/" + DATASET_NAME+ ".csv";
 
 	// public final static int NUM_PARTITIONS = 5000;
     // public final static int VERTICES_COUNT = 430000;
@@ -54,6 +55,11 @@ public final class Utils
     private int totalCommunities = 0;
 	private Set<Integer> validCommunities;
     private Map<Integer, List<String>> members; 
+	private Map<Integer, List<String>> membersSorted; 
+	private Map<Integer, Integer> communityDistribution; 
+	private double avgCommMembers = 0;
+	private int maxCommSize = 0;
+	private int minCommSize = 0;
 	
 	private void evaluateCommunities() 
     {
@@ -76,6 +82,7 @@ public final class Utils
             e.printStackTrace();  
         }   
         filterValidComnmunities();
+		calculateCommunityStats();
         calculateQualityScores();
     }
 
@@ -137,6 +144,38 @@ public final class Utils
         }
     }
 
+	private void sortCommunitiesBasedOnSize() 
+    {
+		membersSorted = new LinkedHashMap<>();
+
+		this.members.entrySet()
+				.stream()
+				.sorted((e1, e2) -> e2.getValue().size() - e1.getValue().size())
+				.forEachOrdered(x -> membersSorted.put(x.getKey(), x.getValue()));
+	}
+
+	private void calculateCommunityStats() 
+	{
+		sortCommunitiesBasedOnSize();
+		communityDistribution = new HashMap<Integer, Integer>();
+		var totalMembers = 0;
+		var minSizeIndex = -1;
+    	for (Integer i : membersSorted.keySet()) 
+    	{
+			var commSize = membersSorted.get(i).size();
+			totalMembers += commSize;
+			var count = communityDistribution.get(commSize);
+			if (count == null)
+				count = 0;
+			communityDistribution.put(commSize, count + 1);
+			minSizeIndex = i;
+		}
+		avgCommMembers = totalMembers/totalCommunities;
+		maxCommSize = membersSorted.entrySet().iterator().next().getValue().size();
+		if (minSizeIndex != -1)
+			minCommSize = membersSorted.get(minSizeIndex).size();
+	}
+
 	private void calculateQualityScores() 
     {
         //conductance score
@@ -148,12 +187,8 @@ public final class Utils
 			{
                 double res = ((double)externalDegrees[community]) / totalDegree;
 				conductanceScores[community] = res;
-				// System.out.println(externalDegrees[community]);
-				// System.out.println(denominator);
-				// System.out.println(res);
 			}
     	}
-
         //coverage score 
         for (Integer community : validCommunities) 
     	{
@@ -162,15 +197,13 @@ public final class Utils
             {
                 double res = ((double)internalDegrees[community]) / totalDegree;
 				coverageScores[community] = res;
-				// System.out.println(internalDegrees[community]);
-				// System.out.println(totalDegree);
             }
     	}
     }
 
     private void writeResultsToFile() throws IOException
     {
-		String file = resultsFile;
+		String file = "Results/" + DATASET_NAME + "/" + resultsFile;
     	File txtfile = new File(file);
     	FileWriter fileWriter = new FileWriter(txtfile);
     	
@@ -211,25 +244,49 @@ public final class Utils
     	line.append("Average conductance: "+ sumConductance/totalCommunities + "\n");
     	line.append("Sum internal degrees: "+ sumInternalDegrees + "\n");
     	line.append("Sum external degrees: "+ sumExternalDegrees + "\n\n");
+    	line.append("Average community size: "+ avgCommMembers + "\n\n");
+    	line.append("Max community size: "+ maxCommSize + "\n\n");
+    	line.append("Min community size: "+ minCommSize + "\n\n");
 
     	line.append("--------------------------------------------------------------------------\n\n");
     	
+		line.append("*sum of members degrees or partial degrees (depending on algorithm)" +"\n");
+
     	fileWriter.write(line.toString());    
-    	for (Integer i : members.keySet()) 
+    	for (Integer i : membersSorted.keySet()) 
     	{
     		line = new StringBuilder();
         	line.append("Community id: " + i + "\n");
-			if (communityVolumes != null)
-        		line.append("Size: " + communityVolumes[i] + "\n");
 			line.append("Conductance: " + conductanceScores[i] + "\n");
         	line.append("Coverage: " + coverageScores[i] + "\n");
 			line.append("Internal degrees: " + internalDegrees[i] + "\n");
         	line.append("External degrees: " + externalDegrees[i] + "\n");
+			if (communityVolumes != null)
+				line.append("*Volume: " + communityVolumes[i] + "\n");
+			var commMembers = membersSorted.get(i);
+			line.append("Size: " + commMembers.size() + "\n");
         	line.append("Members: ");
-        	line.append(String.join(",", members.get(i)));
+        	line.append(String.join(",", commMembers));
     	    line.append("\n\n");
     	    fileWriter.write(line.toString());
 		}
     	fileWriter.close();
+		
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+		String distrinbutionFile = "Results/" + DATASET_NAME + "/" + "distribution_"+resultsFile;
+    	File disttxtfile = new File(distrinbutionFile);
+    	FileWriter distributionFileWriter = new FileWriter(disttxtfile);
+    	line = new StringBuilder();
+    	line.append("Distribution results:"+"\n\n");    	
+    	distributionFileWriter.write(line.toString());    
+    	for (Integer i : communityDistribution.keySet()) 
+    	{
+    		line = new StringBuilder();
+        	line.append("Size: " + i + "\n");
+			line.append("Occurences: " + communityDistribution.get(i) + "\n\n");
+    	    distributionFileWriter.write(line.toString());
+		}
+    	distributionFileWriter.close();
 	}
 }
