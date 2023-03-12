@@ -33,7 +33,7 @@ public class Clustering2PSL
         communitiesCalcDuration = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_2psl.txt", 2*Utils.EDGES_COUNT, totalDuration, degreeCalcDuration, communities, communityVolumes);
+        Utils utils = new Utils("results_2psl", 2*Utils.EDGES_COUNT, totalDuration, degreeCalcDuration, communities, degrees);
         utils.Evaluate();
     }   
 

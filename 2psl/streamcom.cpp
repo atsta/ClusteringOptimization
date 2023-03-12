@@ -1,5 +1,10 @@
 #include "streamcom.hpp"
 #include <iostream>
+#include <iterator>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
 #include <algorithm>
 
 DECLARE_string(communities_file);
@@ -46,6 +51,11 @@ void find_com_forwarder_extension2(void* object, std::vector<edge_t> edges)
     static_cast<Streamcom*>(object)->do_streamcom_extension2(edges);
 }
 
+void find_com_forwarder_extension3(void* object, std::vector<edge_t> edges)
+{
+    static_cast<Streamcom*>(object)->do_streamcom_extension3(edges);
+}
+
 std::vector<uint32_t> Streamcom::find_communities()
 {
     // Decreasing community volume in the first run.
@@ -61,6 +71,9 @@ std::vector<uint32_t> Streamcom::find_communities()
             break;
         case -2:
             globals.read_and_do(find_com_forwarder_extension2, this, "communities (extension)");
+            break;
+        case -3:
+            globals.read_and_do(find_com_forwarder_extension3, this, "communities (extension)");
             break;
         case 1:
 //            globals.MAX_COM_VOLUME *= 0.8;
@@ -254,7 +267,42 @@ void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 
 void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
 {
-   
+	std::fstream fin;
+	fin.open("C:/Users/astamatiou/Documents/ClusteringOptimization/Input/dblp_dataset_shuffled/comm_vols_results_2psl.csv", std::ios::in);
+	std::vector<std::string> row;
+	std::string line, word, temp;
+	while (fin >> temp) {
+
+		row.clear();
+		std::getline(fin, line);
+		std::stringstream s(line);
+		while (std::getline(s, word, ',')) {
+			row.push_back(word);
+		}
+		int comm = stoi(row[0]);
+        int vol = stoi(row[1]);
+        volumes[comm] = vol;
+	}
+    fin.close();
+
+    std::fstream fin1;
+	fin1.open("C:/Users/astamatiou/Documents/ClusteringOptimization/Input/dblp_dataset_shuffled/comms_results_2psl.csv", std::ios::in);
+	std::vector<std::string> row1;
+	std::string line1, word1, temp1;
+	while (fin1 >> temp1) {
+
+		row1.clear();
+		std::getline(fin1, line1);
+		std::stringstream s1(line1);
+		while (std::getline(s1, word1, ',')) {
+			row.push_back(word1);
+		}
+		int node = stoi(row[0]);
+        int comm1 = stoi(row[1]);
+        communities[node] = comm1;
+	}
+    fin1.close();
+
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
