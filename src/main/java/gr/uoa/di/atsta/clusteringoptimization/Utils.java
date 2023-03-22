@@ -15,15 +15,15 @@ import java.util.Map.Entry;
 
 public final class Utils 
 {
-	// public final static int NUM_PARTITIONS = 5000;
-    // public final static int VERTICES_COUNT = 600000;
-    // public final static int EDGES_COUNT = 925872;
-	// public static String DATASET_NAME = "amazon_dataset";
-
 	public final static int NUM_PARTITIONS = 4;
-    public final static int VERTICES_COUNT = 430000;
-    public final static int EDGES_COUNT = 1049866;
-	public static String DATASET_NAME = "dblp_dataset_shuffled";
+    public final static int VERTICES_COUNT = 600000;
+    public final static int EDGES_COUNT = 925872;
+	public static String DATASET_NAME = "amazon_dataset";
+
+	// public final static int NUM_PARTITIONS = 4;
+    // public final static int VERTICES_COUNT = 430000;
+    // public final static int EDGES_COUNT = 1049866;
+	// public static String DATASET_NAME = "dblp_dataset_shuffled";
 
 	public String resultsFile;
 	public int denominatorFactor;
@@ -31,14 +31,14 @@ public final class Utils
 	public long degreeCalcDuration;
 	public Integer[] communities;
     public Integer[] degrees;
-    public Utils(String resultsFile, int denominatorFactor, long totalDuration, long degreeCalcDuration, Integer[] communities, Integer[] communityVolumes) 
+    public Utils(String resultsFile, int denominatorFactor, long totalDuration, long degreeCalcDuration, Integer[] communities, Integer[] degrees) 
 	{
 		this.resultsFile = resultsFile;
 		this.denominatorFactor = denominatorFactor;
 		this.totalDuration = totalDuration;
 		this.degreeCalcDuration = degreeCalcDuration;
 		this.communities = communities;
-		this.degrees = communityVolumes;
+		this.degrees = degrees;
 	}
 
 	public void Evaluate() throws IOException  

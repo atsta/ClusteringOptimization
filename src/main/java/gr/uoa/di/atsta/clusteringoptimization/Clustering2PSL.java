@@ -28,7 +28,7 @@ public class Clustering2PSL
         degreeCalcDuration = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
         Instant startCommunitiesCalc = Instant.now();
         findCommunities();
-        findCommunities(); 
+        //findCommunities(); 
         Instant finishCommunitiesCalc = Instant.now();
         communitiesCalcDuration = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
         Instant finish = Instant.now();

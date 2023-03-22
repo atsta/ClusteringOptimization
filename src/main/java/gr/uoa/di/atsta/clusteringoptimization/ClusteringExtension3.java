@@ -31,7 +31,7 @@ public class ClusteringExtension3
         findCommunities();
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_extension_3", 2*Utils.EDGES_COUNT, totalDuration, 0, communities, null);
+        Utils utils = new Utils("results_extension_3", 2*Utils.EDGES_COUNT, totalDuration, 0, communities, degrees);
         utils.Evaluate();
     }   
     

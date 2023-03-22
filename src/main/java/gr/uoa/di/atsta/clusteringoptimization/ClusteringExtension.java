@@ -15,9 +15,11 @@ public class ClusteringExtension
     public static Integer[] communityVolumes;
     public static int maxCommunityId = 1;
     public static long totalDuration;
+    public static Integer[] degrees;
 
     public static void main(String args[]) throws IOException   
     {   
+        calcDegrees();
         Instant start = Instant.now();
         MAX_COM_VOLUME = Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
         communities = new Integer[Utils.VERTICES_COUNT];
@@ -26,10 +28,42 @@ public class ClusteringExtension
         findCommunities();
         Instant finish = Instant.now();
         totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_extension", 2*Utils.EDGES_COUNT, totalDuration, 0, communities, communityVolumes);
+        Utils utils = new Utils("results_extension", 2*Utils.EDGES_COUNT, totalDuration, 0, communities, degrees);
         utils.Evaluate();
     }   
+
+    private static void initDegrees()
+    {
+        degrees = new Integer[Utils.VERTICES_COUNT];
+        for (int i = 0; i < Utils.VERTICES_COUNT; i++) 
+        {
+            degrees[i] = 0;
+        }
+    }
     
+    private static void calcDegrees()
+    {
+        initDegrees();
+        String line = "";  
+        String splitBy = ",";  
+        try   
+        {  
+            BufferedReader br = new BufferedReader(new FileReader(Utils.DATASET));  
+            while ((line = br.readLine()) != null) 
+            {  
+                String[] edge = line.split(splitBy);   
+                var w = Integer.parseInt(edge[0]);
+                var v = Integer.parseInt(edge[1]);
+                degrees[w]++;
+                degrees[v]++;
+            }  
+        }   
+        catch (IOException e)   
+        {  
+            e.printStackTrace();  
+        }   
+    }
+
     private static void initEdgeNodes()
     {
         nodes = new ArrayList<>(); 	
