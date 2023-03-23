@@ -2,7 +2,12 @@
 #define HDRFPP__STREAMCOM_HPP_
 
 #include <unordered_map>
+
 #include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 #include "globals.hpp"
 #include <map>
@@ -24,6 +29,8 @@ private:
     uint32_t next_community_id;
     Globals &globals;
     std::vector<Node> nodes;
+    std::string comms_filename;
+    std::string vols_filename;
     //std::vector<std::map<uint32_t,uint64_t>> communityDegrees;
     //std::vector<std::map<uint32_t, uint64_t>> communityDegrees;
 
@@ -38,7 +45,7 @@ public:
     void do_streamcom_extension2(std::vector<edge_t> &edges);
     void do_streamcom_extension3(std::vector<edge_t> &edges);
     void do_streamcom_base(std::vector<edge_t> &edges);
-    void do_read_comms(std::string vols_file, std::string comms_file);
+    void do_read_comms();
     void do_communities_evaluation(std::vector<edge_t> &edges);
     typedef std::vector<std::pair<uint64_t, uint32_t>> sort_communities();
 };

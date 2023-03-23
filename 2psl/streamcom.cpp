@@ -1,14 +1,16 @@
 #include "streamcom.hpp"
-#include <iostream>
 #include <iterator>
+#include <algorithm>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <algorithm>
+
 
 DECLARE_string(communities_file);
 DECLARE_int32(str_iters);
+
 
 Streamcom::Streamcom(const Globals &GLOBALS) : globals(const_cast<Globals &>(GLOBALS))
 {
@@ -81,7 +83,7 @@ std::vector<uint32_t> Streamcom::find_communities()
             globals.read_and_do(find_com_forwarder_extension3, this, "communities (extension)");
             break;
         case 0: 
-            globals.read_and_do(find_com_forwarder_extension, this, "communities (extension)");
+            globals.read_and_do(find_com_forwarder_base, this, "communities (extension)");
             break;
         case 1:
             globals.read_and_do(find_com_forwarder, this, "communities");
@@ -106,69 +108,78 @@ std::vector<uint32_t> Streamcom::find_communities()
 
 void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 {
-    std::string vols_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension.csv";
-    std::string comms_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension.csv";
-    do_read_comms(vols_file, comms_file);
+    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension.csv";
+    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension.csv";
+    do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 {
-    std::string vols_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_2.csv";
-    std::string comms_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_2.csv";
-    do_read_comms(vols_file, comms_file);
+    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_2.csv";
+    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_2.csv";
+    do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
 {
-    std::string vols_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_3.csv";
-    std::string comms_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_3.csv";
-    do_read_comms(vols_file, comms_file);
+    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_3.csv";
+    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_3.csv";
+    do_read_comms();
 }
 
 void Streamcom::do_streamcom_base(std::vector<edge_t> &edges)
 {
-    std::string vols_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_2psl.csv";
-    std::string comms_file= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_2psl.csv";
-    do_read_comms(vols_file, comms_file);
+    vols_filename= "comm_vols_results_2psl.csv";
+    comms_filename= "comms_results_2psl.csv";
+
+    do_read_comms();
 }
 
-void Streamcom::do_read_comms(std::string vols_file, std::string comms_file)
+void Streamcom::do_read_comms()
 {
-	std::fstream fin;
-	fin.open(vols_file, std::ios::in);
-	std::vector<std::string> row;
-	std::string line, word, temp;
-	while (fin >> temp) {
 
-		row.clear();
-		std::getline(fin, line);
-		std::stringstream s(line);
-		while (std::getline(s, word, ',')) {
-			row.push_back(word);
-		}
-		int comm = stoi(row[0]);
-        int vol = stoi(row[1]);
-        volumes[comm] = vol;
-	}
-    fin.close();
+	// std::fstream fin;
+	// fin.open(vols_file, std::ios::in);
+	// std::vector<std::string> row;
+	// std::string line, word, temp;
+	// while (fin >> temp) {
 
-    std::fstream fin1;
-	fin1.open(comms_file, std::ios::in);
-	std::vector<std::string> row1;
-	std::string line1, word1, temp1;
-	while (fin1 >> temp1) {
+	// 	row.clear();
+	// 	std::getline(fin, line);
+	// 	std::stringstream s(line);
+	// 	while (std::getline(s, word, ',')) {
+	// 		row.push_back(word);
+	// 	}
+	// 	int comm = stoi(row[0]);
+    //     int vol = stoi(row[1]);
+    //     volumes[comm] = vol;
+	// }
+    // fin.close();
 
-		row1.clear();
-		std::getline(fin1, line1);
-		std::stringstream s1(line1);
-		while (std::getline(s1, word1, ',')) {
-			row.push_back(word1);
-		}
-		int node = stoi(row[0]);
-        int comm1 = stoi(row[1]);
-        communities[node] = comm1;
-	}
-    fin1.close();   
+    std::ifstream vols_file("../" + vols_filename);
+    std::string line;
+    while (getline(vols_file, line)) {
+        std::stringstream ss(line);
+        std::string index, value;
+        getline(ss, index, ',');
+        getline(ss, value, ',');
+        uint32_t comm = stoi(index);
+        volumes[comm] = stoi(value);
+    }
+        LOG(INFO) << "OK1";
+
+    std::ifstream comms_file("../" + comms_filename);
+    std::string line1;
+    while (getline(comms_file, line1)) {
+        std::stringstream ss(line1);
+        std::string index, value;
+        getline(ss, index, ',');
+        getline(ss, value, ',');
+        uint32_t i = stoi(index);
+        communities[i] = stoi(value);
+       // LOG(INFO) << "Node " << i << " comm " << value;
+    }
+    LOG(INFO) << "OK2";
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
