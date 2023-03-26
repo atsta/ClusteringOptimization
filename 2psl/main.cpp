@@ -94,22 +94,28 @@ void start_partitioning(Globals &globals, TwoPhasePartitioner &partitioner, std:
 
             // get qscores of the communities
             quality_scores = streamcom.get_quality_scores();
+            
+            LOG(INFO) << "OK2.1";
         }
         else 
         {
             LOG(ERROR) << "Only str is supported as a prepartitioner";
             exit(-1);
         }
+                                                                	        LOG(INFO) << "OK2.1";
 
-        if (FLAGS_print_coms)
-        {
-            std::ofstream com_file;
-            com_file.open(FLAGS_coms_filename + "_" + std::to_string(FLAGS_str_iters) + "x.txt");
-            for (auto com : communities) com_file << com << " ";
-            com_file << std::endl;
-            com_file.close();
-            exit(0);
-        }
+
+        // if (FLAGS_print_coms)
+        // {
+        //     std::ofstream com_file;
+        //     com_file.open(FLAGS_coms_filename + "_" + std::to_string(FLAGS_str_iters) + "x.txt");
+        //     for (auto com : communities) com_file << com << " ";
+        //     com_file << std::endl;
+        //     com_file.close();
+        //     exit(0);
+        // }
+
+
 
         // prepartition using communities and partition the rest of edges using hdrf
         partitioner.perform_prepartition_and_partition(communities, volumes, quality_scores);

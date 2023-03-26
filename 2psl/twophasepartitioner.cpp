@@ -68,6 +68,8 @@ void TwoPhasePartitioner::perform_prepartition_and_partition(std::vector<uint32_
     volumes = std::move(vols);
     quality_scores = std::move(qscores);
 
+	        LOG(INFO) << "OK3";
+
     // emplace each community with its volume size
     std::vector<std::pair<uint64_t, uint32_t>> sorted_communities;
     for (size_t i = 0; i < volumes.size(); ++i)
@@ -75,6 +77,8 @@ void TwoPhasePartitioner::perform_prepartition_and_partition(std::vector<uint32_
         sorted_communities.emplace_back(volumes[i], i);
     }
     std::sort(sorted_communities.rbegin(), sorted_communities.rend()); // sort in descending order
+
+	        LOG(INFO) << "OK4";
 
     for (auto& com_volume_pair : sorted_communities)
     {

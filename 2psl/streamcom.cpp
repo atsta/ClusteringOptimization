@@ -103,13 +103,21 @@ std::vector<uint32_t> Streamcom::find_communities()
             }
             break;
     }
+
+    // for (uint32_t i = 0; i < globals.NUM_VERTICES; i++) 
+    // {
+    //     LOG(INFO) << "Node " << i << " community " << communities[i];
+    //     if (i > 50)
+    //         break;
+    // }
+
     return communities;
 }
 
 void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 {
-    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension.csv";
-    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension.csv";
+    vols_filename= "comm_vols_results_extension.csv";
+    comms_filename= "comms_results_extension.csv";
     do_read_comms();
 }
 
@@ -164,9 +172,12 @@ void Streamcom::do_read_comms()
         getline(ss, index, ',');
         getline(ss, value, ',');
         uint32_t comm = stoi(index);
-        volumes[comm] = stoi(value);
+        if (stoi(value) == 0)
+            continue;
+        auto& vol = volumes[comm];
+        vol = stoi(value);
     }
-        LOG(INFO) << "OK1";
+       // LOG(INFO) << "OK1";
 
     std::ifstream comms_file("../" + comms_filename);
     std::string line1;
@@ -176,7 +187,12 @@ void Streamcom::do_read_comms()
         getline(ss, index, ',');
         getline(ss, value, ',');
         uint32_t i = stoi(index);
-        communities[i] = stoi(value);
+        if (stoi(value) == 0)
+        {
+            continue;
+        }
+        auto& com = communities[i];
+        com = stoi(value);
        // LOG(INFO) << "Node " << i << " comm " << value;
     }
     LOG(INFO) << "OK2";
