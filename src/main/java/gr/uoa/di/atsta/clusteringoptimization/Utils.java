@@ -16,8 +16,9 @@ import java.util.Map.Entry;
 public final class Utils 
 {
 	public final static int NUM_PARTITIONS = 4;
-    public final static int VERTICES_COUNT = 600000;
+    public final static int VERTICES_COUNT = 334822;
     public final static int EDGES_COUNT = 925872;
+	public final static int EDGES_COUNT_REAL = 924923;
 	public static String DATASET_NAME = "amazon_dataset";
 
 	// public final static int NUM_PARTITIONS = 4;
@@ -61,7 +62,7 @@ public final class Utils
 	private int maxCommSize = 0;
 	private int minCommSize = 0;
 	private Integer[] communityVolumes;
-	public static String DATASET = "Datasets/" + DATASET_NAME+ ".csv";
+	public static String DATASET = "Datasets/Converted/" + DATASET_NAME+ ".csv";
 	
 	private void evaluateCommunities() 
     {
@@ -351,7 +352,7 @@ public final class Utils
 		String commsFile = "Input/" + DATASET_NAME + "/" + "comms_"+resultsFile + ".csv";
     	File distcsvfile = new File(commsFile);
     	FileWriter commFileWriter = new FileWriter(distcsvfile);
-		for (int i = 1; i < VERTICES_COUNT; i++) 
+		for (int i = 0; i < VERTICES_COUNT; i++) 
         {
 			if (communities[i] == null)
 				continue;

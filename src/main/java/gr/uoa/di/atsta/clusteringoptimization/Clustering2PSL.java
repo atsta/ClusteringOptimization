@@ -19,9 +19,8 @@ public class Clustering2PSL
     public static void main(String args[]) throws IOException   
     {   
         Instant start = Instant.now();
-        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
-        communities = new Integer[Utils.VERTICES_COUNT];
-        communityVolumes = new Integer[Utils.VERTICES_COUNT];
+        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT_REAL/Utils.NUM_PARTITIONS;
+        initCommunities();
         Instant startDegreeCalc = Instant.now();
         calcDegrees();
         Instant finishDegreeCalc = Instant.now();
@@ -36,6 +35,16 @@ public class Clustering2PSL
         Utils utils = new Utils("results_2psl", 2*Utils.EDGES_COUNT, totalDuration, degreeCalcDuration, communities, degrees);
         utils.Evaluate();
     }   
+
+    private static void initCommunities() {
+        communities = new Integer[Utils.VERTICES_COUNT];
+        communityVolumes = new Integer[Utils.VERTICES_COUNT];
+        for (int i = 0;i < Utils.VERTICES_COUNT; i++)
+        {
+            communities[i]=0;
+            communityVolumes[i] = 0;
+        }
+    }
 
     private static void findCommunities()
     {
@@ -60,18 +69,14 @@ public class Clustering2PSL
 
     public static void findEdgeCommunity(int u, int v)
     {
-        if(communities[u] == null)
+        if(communities[u] == 0)
         {
-            if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 0;
             communities[u] = maxCommunityId;
             communityVolumes[maxCommunityId] += degrees[u];
             maxCommunityId++;
         }
-        if(communities[v] == null)
+        if(communities[v] == 0)
         {
-            if (communityVolumes[maxCommunityId] == null)
-                communityVolumes[maxCommunityId] = 0;
             communities[v] = maxCommunityId;
             communityVolumes[maxCommunityId] += degrees[v];
             maxCommunityId++;

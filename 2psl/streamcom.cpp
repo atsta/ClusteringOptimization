@@ -96,8 +96,9 @@ std::vector<uint32_t> Streamcom::find_communities()
             globals.read_and_do(find_com_forwarder, this, "communities");
             for (int i = 3; i <= FLAGS_str_iters; i++)
             {
-               	if (globals.CLUSTER_QUALITY_EVAL){
-                		evaluate_communities();
+               	if (globals.CLUSTER_QUALITY_EVAL)
+                {
+                    evaluate_communities();
                 }
             	globals.read_and_do(find_com_forwarder, this, "communities");
             }
@@ -123,15 +124,15 @@ void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 
 void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 {
-    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_2.csv";
-    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_2.csv";
+    vols_filename= "comm_vols_results_extension_2.csv";
+    comms_filename= "comms_results_extension_2.csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
 {
-    vols_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comm_vols_results_extension_3.csv";
-    comms_filename= "C:/Users/astamatiou/Documents/ClusteringOptimization/Input/amazon_dataset/comms_results_extension_3.csv";
+    vols_filename= "comm_vols_results_extension_3.csv";
+    comms_filename= "comms_results_extension_3.csv";
     do_read_comms();
 }
 
@@ -177,25 +178,21 @@ void Streamcom::do_read_comms()
         auto& vol = volumes[comm];
         vol = stoi(value);
     }
-       // LOG(INFO) << "OK1";
-
     std::ifstream comms_file("../" + comms_filename);
     std::string line1;
-    while (getline(comms_file, line1)) {
+    while (getline(comms_file, line1)) 
+    {
         std::stringstream ss(line1);
         std::string index, value;
         getline(ss, index, ',');
         getline(ss, value, ',');
-        uint32_t i = stoi(index);
+        auto i = stoi(index);
         if (stoi(value) == 0)
         {
             continue;
         }
-        auto& com = communities[i];
-        com = stoi(value);
-       // LOG(INFO) << "Node " << i << " comm " << value;
+        communities[i] = stoi(value);
     }
-    LOG(INFO) << "OK2";
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)

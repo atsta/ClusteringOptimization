@@ -1,16 +1,7 @@
 #ifndef HDRFPP__STREAMCOM_HPP_
 #define HDRFPP__STREAMCOM_HPP_
 
-#include <unordered_map>
-
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <algorithm>
-
 #include "globals.hpp"
-#include <map>
 #include "node.hpp"
 #include "twophasepartitioner.hpp"
 
