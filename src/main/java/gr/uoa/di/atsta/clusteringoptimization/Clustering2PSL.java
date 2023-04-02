@@ -19,7 +19,7 @@ public class Clustering2PSL
     public static void main(String args[]) throws IOException   
     {   
         Instant start = Instant.now();
-        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT_REAL/Utils.NUM_PARTITIONS;
+        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
         initCommunities();
         Instant startDegreeCalc = Instant.now();
         calcDegrees();
@@ -73,13 +73,13 @@ public class Clustering2PSL
         {
             communities[u] = maxCommunityId;
             communityVolumes[maxCommunityId] += degrees[u];
-            maxCommunityId++;
+            ++maxCommunityId;
         }
         if(communities[v] == 0)
         {
             communities[v] = maxCommunityId;
             communityVolumes[maxCommunityId] += degrees[v];
-            maxCommunityId++;
+            ++maxCommunityId;
         }
 
         var volCommU = communityVolumes[communities[u]];

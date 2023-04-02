@@ -54,8 +54,8 @@ public class ClusteringExtension
                 String[] edge = line.split(splitBy);   
                 var w = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                degrees[w]++;
-                degrees[v]++;
+                ++degrees[w];
+                ++degrees[v];
             }  
         }   
         catch (IOException e)   

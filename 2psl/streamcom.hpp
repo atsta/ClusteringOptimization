@@ -18,6 +18,7 @@ private:
 	std::vector<uint64_t> external_degrees; // external degree of each community; index is community id
     std::vector<double> quality_scores; // quality of the communities (intra-cluster edges / inter-cluster edges)
     uint32_t next_community_id;
+    std::string test_dataset;
     Globals &globals;
     std::vector<Node> nodes;
     std::string comms_filename;

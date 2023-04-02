@@ -1,4 +1,12 @@
 #include "globals.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+
+DECLARE_int32(str_iters);
+
 
 void degree_forwarder(void* object, std::vector<edge_t> edges);
 
@@ -46,11 +54,29 @@ void Globals::read_and_do(void (*f)(void*, std::vector<edge_t>), void* context, 
 
 void Globals::do_degree_calculation(std::vector<edge_t> edges)
 {
-    for (auto& edge : edges)
-    {
-        ++DEGREES[edge.first];
-        ++DEGREES[edge.second];
-    }
+    // if (FLAGS_str_iters != 1)
+    // {
+    //     std::string degrees_filename = "../Input/dblp_dataset_shuffled/Degrees/comm_vols_degree_results_2psl.csv";
+    //     std::ifstream vols_file(degrees_filename);
+    //     std::string line;
+    //     while (getline(vols_file, line)) {
+    //         std::stringstream ss(line);
+    //         std::string index, value;
+    //         getline(ss, index, ',');
+    //         getline(ss, value, ',');
+    //         uint32_t comm = stoi(index);
+    //         // if (stoi(value) == 0)
+    //         //     continue;
+    //         DEGREES[comm] = stoi(value);
+    //     }
+    // }else 
+    // {
+        for (auto& edge : edges)
+        {
+            ++DEGREES[edge.first];
+            ++DEGREES[edge.second];
+        }
+    //}
 }
 
 void Globals::calculate_degrees()

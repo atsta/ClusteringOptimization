@@ -66,8 +66,8 @@ public class ClusteringExtension3
                 String[] edge = line.split(splitBy);   
                 var u = Integer.parseInt(edge[0]);
                 var v = Integer.parseInt(edge[1]);
-                degrees[u]++;
-                degrees[v]++;
+                ++degrees[u];
+                ++degrees[v];
                 calcPartialDegree(u, v);
             }  
         }   

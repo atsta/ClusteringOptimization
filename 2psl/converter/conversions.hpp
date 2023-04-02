@@ -69,9 +69,9 @@ class Converter
         fout.write((char *)&num_edges, sizeof(num_edges));
         fout.close();
 
-        fout.open(degree_name(basefilename), std::ios::binary);
-        fout.write((char *)&degrees[0], num_vertices * sizeof(vid_t));
-        fout.close();
+        // fout.open(degree_name(basefilename), std::ios::binary);
+        // fout.write((char *)&degrees[0], num_vertices * sizeof(vid_t));
+        // fout.close();
     }
 };
 

@@ -25,6 +25,8 @@ Streamcom::Streamcom(const Globals &GLOBALS) : globals(const_cast<Globals &>(GLO
     }
     next_community_id = 1;
 
+    test_dataset = "amazon_dataset";
+
     //init edge nodes
     for (uint32_t i = 0; i < GLOBALS.NUM_VERTICES + 1; i++) 
     {
@@ -88,21 +90,21 @@ std::vector<uint32_t> Streamcom::find_communities()
         case 1:
             globals.read_and_do(find_com_forwarder, this, "communities");
             break;
-        default:
-            globals.read_and_do(find_com_forwarder, this, "communities");
-            if (globals.CLUSTER_QUALITY_EVAL){
-            	evaluate_communities();
-            }
-            globals.read_and_do(find_com_forwarder, this, "communities");
-            for (int i = 3; i <= FLAGS_str_iters; i++)
-            {
-               	if (globals.CLUSTER_QUALITY_EVAL)
-                {
-                    evaluate_communities();
-                }
-            	globals.read_and_do(find_com_forwarder, this, "communities");
-            }
-            break;
+        // default:
+        //     globals.read_and_do(find_com_forwarder, this, "communities");
+        //     if (globals.CLUSTER_QUALITY_EVAL){
+        //     	evaluate_communities();
+        //     }
+        //     globals.read_and_do(find_com_forwarder, this, "communities");
+        //     for (int i = 3; i <= FLAGS_str_iters; i++)
+        //     {
+        //        	if (globals.CLUSTER_QUALITY_EVAL)
+        //         {
+        //             evaluate_communities();
+        //         }
+        //     	globals.read_and_do(find_com_forwarder, this, "communities");
+        //     }
+        //     break;
     }
 
     // for (uint32_t i = 0; i < globals.NUM_VERTICES; i++) 
@@ -117,55 +119,35 @@ std::vector<uint32_t> Streamcom::find_communities()
 
 void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 {
-    vols_filename= "comm_vols_results_extension.csv";
-    comms_filename= "comms_results_extension.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension.csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension.csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 {
-    vols_filename= "comm_vols_results_extension_2.csv";
-    comms_filename= "comms_results_extension_2.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_2.csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_2.csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
 {
-    vols_filename= "comm_vols_results_extension_3.csv";
-    comms_filename= "comms_results_extension_3.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_3.csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_3.csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_base(std::vector<edge_t> &edges)
 {
-    vols_filename= "comm_vols_results_2psl.csv";
-    comms_filename= "comms_results_2psl.csv";
-
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_2psl.csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_2psl.csv";
     do_read_comms();
 }
 
 void Streamcom::do_read_comms()
 {
-
-	// std::fstream fin;
-	// fin.open(vols_file, std::ios::in);
-	// std::vector<std::string> row;
-	// std::string line, word, temp;
-	// while (fin >> temp) {
-
-	// 	row.clear();
-	// 	std::getline(fin, line);
-	// 	std::stringstream s(line);
-	// 	while (std::getline(s, word, ',')) {
-	// 		row.push_back(word);
-	// 	}
-	// 	int comm = stoi(row[0]);
-    //     int vol = stoi(row[1]);
-    //     volumes[comm] = vol;
-	// }
-    // fin.close();
-
-    std::ifstream vols_file("../" + vols_filename);
+    std::ifstream vols_file(vols_filename);
     std::string line;
     while (getline(vols_file, line)) {
         std::stringstream ss(line);
@@ -173,12 +155,12 @@ void Streamcom::do_read_comms()
         getline(ss, index, ',');
         getline(ss, value, ',');
         uint32_t comm = stoi(index);
-        if (stoi(value) == 0)
-            continue;
-        auto& vol = volumes[comm];
-        vol = stoi(value);
+        // if (stoi(value) == 0)
+        //     continue;
+        volumes[comm] = stoi(value);
     }
-    std::ifstream comms_file("../" + comms_filename);
+
+    std::ifstream comms_file(comms_filename);
     std::string line1;
     while (getline(comms_file, line1)) 
     {
@@ -187,20 +169,30 @@ void Streamcom::do_read_comms()
         getline(ss, index, ',');
         getline(ss, value, ',');
         auto i = stoi(index);
-        if (stoi(value) == 0)
-        {
-            continue;
-        }
+        // if (stoi(value) == 0)
+        // {
+        //     continue;
+        // }
         communities[i] = stoi(value);
+       // LOG(INFO) << "Comm " << i << " is " << communities[i];
     }
 }
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
 {
+    // std::ofstream dataset_file("../Converted_datasets/"+test_dataset+".csv");
+    // if (!dataset_file.is_open()) { // check if file was opened successfully
+    //     std::cerr << "Error: Could not open file" << std::endl;
+    // }
+
     for (auto& edge : edges)
     {
         auto u = edge.first;
         auto v = edge.second;
+
+        // // -------------------write edges to file--------------------
+        // dataset_file << u << "," << v << std::endl;;
+        // //--------------------end------------------------------------
 
         auto& com_u = communities[u];
         auto& com_v = communities[v];
@@ -235,37 +227,40 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
          */
         if((vol_u <= globals.MAX_COM_VOLUME) && (vol_v <= globals.MAX_COM_VOLUME))
         {
-            if (globals.CLUSTER_QUALITY_EVAL){
-            	auto& score_u = quality_scores[com_u];
-            	auto& score_v = quality_scores[com_v];
-            	// take into account quality scores when making the vertex move decision
-            	if(real_vol_u <= real_vol_v && score_u >= score_v && vol_v + globals.DEGREES[u] <= globals.MAX_COM_VOLUME){
-            		// move u to cluster of v
-            		vol_u -= globals.DEGREES[u];
-            		vol_v += globals.DEGREES[u];
-            		communities[u] = communities[v];
-            	}
-            	else if (real_vol_v < real_vol_u && score_v >= score_u && vol_u + globals.DEGREES[v] <= globals.MAX_COM_VOLUME){
-            		// move v to cluster of u
-            		vol_v -= globals.DEGREES[v];
-            		vol_u += globals.DEGREES[v];
-            		communities[v] = communities[u];
-            	}
+            // if (globals.CLUSTER_QUALITY_EVAL){
+            // 	auto& score_u = quality_scores[com_u];
+            // 	auto& score_v = quality_scores[com_v];
+            // 	// take into account quality scores when making the vertex move decision
+            // 	if(real_vol_u <= real_vol_v && score_u >= score_v && vol_v + globals.DEGREES[u] <= globals.MAX_COM_VOLUME){
+            // 		// move u to cluster of v
+            // 		vol_u -= globals.DEGREES[u];
+            // 		vol_v += globals.DEGREES[u];
+            // 		communities[u] = communities[v];
+            // 	}
+            // 	else if (real_vol_v < real_vol_u && score_v >= score_u && vol_u + globals.DEGREES[v] <= globals.MAX_COM_VOLUME){
+            // 		// move v to cluster of u
+            // 		vol_v -= globals.DEGREES[v];
+            // 		vol_u += globals.DEGREES[v];
+            // 		communities[v] = communities[u];
+            // 	}
+            // }
+           // else { // if cluster quality is not taken into account
+            if(real_vol_u <= real_vol_v && vol_v + globals.DEGREES[u] <= globals.MAX_COM_VOLUME)
+            {
+                vol_u -= globals.DEGREES[u];
+                vol_v += globals.DEGREES[u];
+                communities[u] = communities[v];
             }
-            else { // if cluster quality is not taken into account
-                if(real_vol_u <= real_vol_v && vol_v + globals.DEGREES[u] <= globals.MAX_COM_VOLUME){
-               		vol_u -= globals.DEGREES[u];
-               		vol_v += globals.DEGREES[u];
-               		communities[u] = communities[v];
-                }
-                else if (real_vol_v < real_vol_u && vol_u + globals.DEGREES[v] <= globals.MAX_COM_VOLUME) {
-           			vol_v -= globals.DEGREES[v];
-           			vol_u += globals.DEGREES[v];
-           			communities[v] = communities[u];
-                }
+            else if (real_vol_v < real_vol_u && vol_u + globals.DEGREES[v] <= globals.MAX_COM_VOLUME) {
+                vol_v -= globals.DEGREES[v];
+                vol_u += globals.DEGREES[v];
+                communities[v] = communities[u];
             }
+           // }
         }
     }
+        //    dataset_file.close();
+
 }
 
 void Streamcom::evaluate_communities()

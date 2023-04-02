@@ -17,14 +17,13 @@ public final class Utils
 {
 	public final static int NUM_PARTITIONS = 4;
     public final static int VERTICES_COUNT = 334822;
-    public final static int EDGES_COUNT = 925872;
-	public final static int EDGES_COUNT_REAL = 924923;
+    public final static int EDGES_COUNT = 924923;
 	public static String DATASET_NAME = "amazon_dataset";
 
-	// public final static int NUM_PARTITIONS = 4;
-    // public final static int VERTICES_COUNT = 430000;
-    // public final static int EDGES_COUNT = 1049866;
-	// public static String DATASET_NAME = "dblp_dataset_shuffled";
+	// public final static int NUM_PARTITIONS = 8;
+    // public final static int VERTICES_COUNT = 317054;
+    // public final static int EDGES_COUNT = 1049008;
+	// public static String DATASET_NAME = "dblp_dataset";
 
 	public String resultsFile;
 	public int denominatorFactor;
@@ -123,7 +122,7 @@ public final class Utils
 	private void filterValidComnmunities()
     {
     	validCommunities = new HashSet<>();
-        for (int i = 1; i < VERTICES_COUNT; i++) 
+        for (int i = 0; i < VERTICES_COUNT; i++) 
         {
            if (communities[i] == null)
                 continue;
@@ -141,7 +140,7 @@ public final class Utils
 			communityVolumes[community] = 0;
     		members.put(community, new ArrayList<>());
     	}
-    	for (Integer i = 1; i < VERTICES_COUNT; i++) 
+    	for (Integer i = 0; i < VERTICES_COUNT; i++) 
         {
             if (communities[i] == null)
                 continue;
@@ -335,7 +334,7 @@ public final class Utils
 		String[] row6 = {"Node", "Community" };
 		commFileWriter.append(String.join(",", row6));
 		commFileWriter.append("\n");
-		for (int i = 1; i < VERTICES_COUNT; i++) 
+		for (int i = 0; i < VERTICES_COUNT; i++) 
         {
 			var comm = "";
 			if (communities[i] != null)
@@ -349,7 +348,7 @@ public final class Utils
 
 	private void writeCommunitiesToFile() throws IOException 
 	{
-		String commsFile = "Input/" + DATASET_NAME + "/" + "comms_"+resultsFile + ".csv";
+		String commsFile = "2psl/Input/" + DATASET_NAME + "/" + "comms_"+resultsFile + ".csv";
     	File distcsvfile = new File(commsFile);
     	FileWriter commFileWriter = new FileWriter(distcsvfile);
 		for (int i = 0; i < VERTICES_COUNT; i++) 
@@ -362,7 +361,7 @@ public final class Utils
         }
     	commFileWriter.close();
 
-		String commVolsFile = "Input/" + DATASET_NAME + "/" + "comm_vols_"+resultsFile + ".csv";
+		String commVolsFile = "2psl/Input/" + DATASET_NAME + "/" + "comm_vols_"+resultsFile + ".csv";
     	File volsCsvFile = new File(commVolsFile);
     	FileWriter commVolsFileWriter = new FileWriter(volsCsvFile);
 		for (Integer community : validCommunities) 
@@ -372,5 +371,17 @@ public final class Utils
 			commVolsFileWriter.append("\n");
     	}
     	commVolsFileWriter.close();
+
+		// String commVolsDegreeFile = "2psl/Input/" + DATASET_NAME + "/Degrees/" + "comm_vols_degree_"+resultsFile + ".csv";
+    	// File degreeCsvFile = new File(commVolsDegreeFile);
+    	// FileWriter degreeVolsFileWriter = new FileWriter(degreeCsvFile);
+		// for (int i = 0; i < VERTICES_COUNT; i++) 
+
+    	// {
+		// 	String[] row = { Integer.toString(i), Integer.toString(degrees[i]) };
+		// 	degreeVolsFileWriter.append(String.join(",", row));
+		// 	degreeVolsFileWriter.append("\n");
+    	// }
+    	// degreeVolsFileWriter.close();
 	}
 }
