@@ -15,15 +15,15 @@ import java.util.Map.Entry;
 
 public final class Utils 
 {
-	public final static int NUM_PARTITIONS = 4;
-    public final static int VERTICES_COUNT = 334822;
-    public final static int EDGES_COUNT = 924923;
-	public static String DATASET_NAME = "amazon_dataset";
+	// public final static int NUM_PARTITIONS = 50;
+    // public final static int VERTICES_COUNT = 334822;
+    // public final static int EDGES_COUNT = 924923;
+	// public static String DATASET_NAME = "amazon_dataset";
 
-	// public final static int NUM_PARTITIONS = 8;
-    // public final static int VERTICES_COUNT = 317054;
-    // public final static int EDGES_COUNT = 1049008;
-	// public static String DATASET_NAME = "dblp_dataset";
+	public final static int NUM_PARTITIONS = 50;
+    public final static int VERTICES_COUNT = 317054;
+    public final static int EDGES_COUNT = 1049008;
+	public static String DATASET_NAME = "dblp_dataset_shuffled";
 
 	public String resultsFile;
 	public int denominatorFactor;
@@ -348,7 +348,7 @@ public final class Utils
 
 	private void writeCommunitiesToFile() throws IOException 
 	{
-		String commsFile = "2psl/Input/" + DATASET_NAME + "/" + "comms_"+resultsFile + ".csv";
+		String commsFile = "2psl/Input/" + DATASET_NAME + "/" + "comms_"+resultsFile + "_" + NUM_PARTITIONS + ".csv";
     	File distcsvfile = new File(commsFile);
     	FileWriter commFileWriter = new FileWriter(distcsvfile);
 		for (int i = 0; i < VERTICES_COUNT; i++) 
@@ -361,7 +361,7 @@ public final class Utils
         }
     	commFileWriter.close();
 
-		String commVolsFile = "2psl/Input/" + DATASET_NAME + "/" + "comm_vols_"+resultsFile + ".csv";
+		String commVolsFile = "2psl/Input/" + DATASET_NAME + "/" + "comm_vols_"+resultsFile + "_" + NUM_PARTITIONS + ".csv";
     	File volsCsvFile = new File(commVolsFile);
     	FileWriter commVolsFileWriter = new FileWriter(volsCsvFile);
 		for (Integer community : validCommunities) 

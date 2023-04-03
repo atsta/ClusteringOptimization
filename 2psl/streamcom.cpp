@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 
-
 DECLARE_string(communities_file);
 DECLARE_int32(str_iters);
 
@@ -25,7 +24,11 @@ Streamcom::Streamcom(const Globals &GLOBALS) : globals(const_cast<Globals &>(GLO
     }
     next_community_id = 1;
 
-    test_dataset = "amazon_dataset";
+    test_dataset = "dblp_dataset_shuffled";
+    // std::string str = FLAGS_filename;
+    // std::string delimiter = "/";
+    // std::string token = str.substr(str.find_last_of(delimiter) + 1);
+    // test_dataset = token.substr(0, token.find_last_of("."));
 
     //init edge nodes
     for (uint32_t i = 0; i < GLOBALS.NUM_VERTICES + 1; i++) 
@@ -119,29 +122,29 @@ std::vector<uint32_t> Streamcom::find_communities()
 
 void Streamcom::do_streamcom_extension(std::vector<edge_t> &edges)
 {
-    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension.csv";
-    comms_filename= "../Input/"+test_dataset+"/comms_results_extension.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension2(std::vector<edge_t> &edges)
 {
-    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_2.csv";
-    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_2.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_2_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_2_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_extension3(std::vector<edge_t> &edges)
 {
-    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_3.csv";
-    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_3.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_extension_3_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_extension_3_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
     do_read_comms();
 }
 
 void Streamcom::do_streamcom_base(std::vector<edge_t> &edges)
 {
-    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_2psl.csv";
-    comms_filename= "../Input/"+test_dataset+"/comms_results_2psl.csv";
+    vols_filename= "../Input/"+test_dataset+"/comm_vols_results_2psl_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
+    comms_filename= "../Input/"+test_dataset+"/comms_results_2psl_"+std::to_string(globals.NUM_PARTITIONS)+".csv";
     do_read_comms();
 }
 
@@ -190,9 +193,9 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
         auto u = edge.first;
         auto v = edge.second;
 
-        // // -------------------write edges to file--------------------
-        // dataset_file << u << "," << v << std::endl;;
-        // //--------------------end------------------------------------
+        // -------------------write edges to file--------------------
+        //dataset_file << u << "," << v << std::endl;;
+        //--------------------end------------------------------------
 
         auto& com_u = communities[u];
         auto& com_v = communities[v];
@@ -215,12 +218,6 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
 
         auto real_vol_u = vol_u - globals.DEGREES[u];
         auto real_vol_v = vol_v - globals.DEGREES[v];
-
-//        double utilization_u = (double) real_vol_u / globals.MAX_COM_VOLUME;
-//        double utilization_v = (double) real_vol_v / globals.MAX_COM_VOLUME;
-
-//        std::cout << "vol_u " << vol_u << " score_u " << score_u << " utilization_u " << utilization_u << std::endl;
-
 
         /**
          * using cluster and vertex conductance metrics
@@ -259,7 +256,7 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
            // }
         }
     }
-        //    dataset_file.close();
+       //   dataset_file.close();
 
 }
 
