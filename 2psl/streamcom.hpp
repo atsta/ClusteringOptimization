@@ -3,6 +3,9 @@
 
 #include "globals.hpp"
 #include "node.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "twophasepartitioner.hpp"
 
 DECLARE_string(streamcom_type);
@@ -19,6 +22,7 @@ private:
     std::vector<double> quality_scores; // quality of the communities (intra-cluster edges / inter-cluster edges)
     uint32_t next_community_id;
     std::string test_dataset;
+    std::ofstream dataset_file;
     Globals &globals;
     std::vector<Node> nodes;
     std::string comms_filename;

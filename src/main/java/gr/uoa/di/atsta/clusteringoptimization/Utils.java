@@ -15,15 +15,21 @@ import java.util.Map.Entry;
 
 public final class Utils 
 {
-	// public final static int NUM_PARTITIONS = 50;
     // public final static int VERTICES_COUNT = 334822;
     // public final static int EDGES_COUNT = 924923;
 	// public static String DATASET_NAME = "amazon_dataset";
 
-	public final static int NUM_PARTITIONS = 50;
-    public final static int VERTICES_COUNT = 317054;
-    public final static int EDGES_COUNT = 1049008;
-	public static String DATASET_NAME = "dblp_dataset_shuffled";
+    // public final static int VERTICES_COUNT = 317054;
+    // public final static int EDGES_COUNT = 1049008;
+	// public static String DATASET_NAME = "dblp_dataset";
+
+    // public final static int VERTICES_COUNT = 1134228;
+    // public final static int EDGES_COUNT = 2986943;
+	// public static String DATASET_NAME = "youtube_dataset";
+
+    public final static int VERTICES_COUNT = 3997697;
+    public final static int EDGES_COUNT = 34680452;
+	public static String DATASET_NAME = "journal_dataset";
 
 	public String resultsFile;
 	public int denominatorFactor;
@@ -31,7 +37,7 @@ public final class Utils
 	public long degreeCalcDuration;
 	public Integer[] communities;
     public Integer[] degrees;
-    public Utils(String resultsFile, int denominatorFactor, long totalDuration, long degreeCalcDuration, Integer[] communities, Integer[] degrees) 
+    public Utils(String resultsFile, int denominatorFactor, long totalDuration, long degreeCalcDuration, Integer[] communities, Integer[] degrees, int num_partitions) 
 	{
 		this.resultsFile = resultsFile;
 		this.denominatorFactor = denominatorFactor;
@@ -39,6 +45,7 @@ public final class Utils
 		this.degreeCalcDuration = degreeCalcDuration;
 		this.communities = communities;
 		this.degrees = degrees;
+		this.NUM_PARTITIONS = num_partitions;
 	}
 
 	public void Evaluate() throws IOException  
@@ -61,6 +68,7 @@ public final class Utils
 	private int maxCommSize = 0;
 	private int minCommSize = 0;
 	private Integer[] communityVolumes;
+	private int NUM_PARTITIONS;
 	public static String DATASET = "Datasets/Converted/" + DATASET_NAME+ ".csv";
 	
 	private void evaluateCommunities() 
@@ -216,11 +224,11 @@ public final class Utils
 
     private void writeResultsToFile() throws IOException
     {
-		String file = "Results/" + DATASET_NAME + "/" + resultsFile + ".csv";
+		String file = "Results/" + DATASET_NAME + "/" + resultsFile + "_" + NUM_PARTITIONS + ".csv";
     	File csvfile = new File(file);
 		FileWriter fileWriter = new FileWriter(csvfile);
-    	StringBuilder line = new StringBuilder();
 
+		//Miscellenious
 		String[] row11 = {"Edges count", Integer.toString(EDGES_COUNT) };
 		fileWriter.append(String.join(",", row11));
 		fileWriter.append("\n");
@@ -230,16 +238,11 @@ public final class Utils
 		String[] row13 = {"Number of partitions", Integer.toString(NUM_PARTITIONS) };
 		fileWriter.append(String.join(",", row13));
 		fileWriter.append("\n");
-		String[] row14 = {"Total", Integer.toString(totalCommunities) };
+		String[] row14 = {"Total communities", Integer.toString(totalCommunities) };
 		fileWriter.append(String.join(",", row14));
 		fileWriter.append("\n\n");
 
-		String[] row00 = {"Total duration (ms)", Long.toString(totalDuration) };
-		fileWriter.append(String.join(",", row00));
-		fileWriter.append("\n");
-		String[] row01 = {"Total duration (s)", Long.toString(totalDuration/1000) };
-		fileWriter.append(String.join(",", row01));
-		fileWriter.append("\n");
+		//Time
 		String[] row15 = {"Degree calculation duration (ms)", Long.toString(degreeCalcDuration) };
 		fileWriter.append(String.join(",", row15));
 		fileWriter.append("\n");
@@ -251,6 +254,12 @@ public final class Utils
 		fileWriter.append("\n");
 		String[] row18 = {"Community calculation duration (s)", Long.toString((totalDuration - degreeCalcDuration)/1000) };
 		fileWriter.append(String.join(",", row18));
+		fileWriter.append("\n");
+		String[] row00 = {"Total duration (ms)", Long.toString(totalDuration) };
+		fileWriter.append(String.join(",", row00));
+		fileWriter.append("\n");
+		String[] row01 = {"Total duration (s)", Long.toString(totalDuration/1000) };
+		fileWriter.append(String.join(",", row01));
 		fileWriter.append("\n\n");
 
     	//Quality
@@ -288,62 +297,62 @@ public final class Utils
 		fileWriter.append(String.join(",", row24));
 		fileWriter.append("\n\n");
 
-		String[] row25 = {"Community", "Size", "Members"};
-		fileWriter.append(String.join(",", row25));
-		fileWriter.append("\n");
-    	for (Integer i : membersSorted.keySet()) 
-    	{
-			var commMembers = membersSorted.get(i);
-			String[] row = { i.toString(), Integer.toString(commMembers.size()), String.join(",", commMembers)};
-			fileWriter.append(String.join(",", row));
-			fileWriter.append("\n");
-		}
+		// String[] row25 = {"Community", "Size", "Members"};
+		// fileWriter.append(String.join(",", row25));
+		// fileWriter.append("\n");
+    	// for (Integer i : membersSorted.keySet()) 
+    	// {
+		// 	var commMembers = membersSorted.get(i);
+		// 	String[] row = { i.toString(), Integer.toString(commMembers.size()), String.join(",", commMembers)};
+		// 	fileWriter.append(String.join(",", row));
+		// 	fileWriter.append("\n");
+		// }
     	fileWriter.close();
 		
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-		String distrinbutionFile = "Results/" + DATASET_NAME + "/" + "distribution_"+resultsFile + ".csv";
-    	File distcsvfile = new File(distrinbutionFile);
-    	FileWriter distributionFileWriter = new FileWriter(distcsvfile);
-		String[] row1 = {"Average community size", Double.toString(avgCommMembers) };
-		distributionFileWriter.append(String.join(",", row1));
-		distributionFileWriter.append("\n");
-		String[] row2 = {"Max community size", Integer.toString(maxCommSize) };
-		distributionFileWriter.append(String.join(",", row2));
-		distributionFileWriter.append("\n");
-		String[] row3 = {"Min community size", Integer.toString(minCommSize) };
-		distributionFileWriter.append(String.join(",", row3));
-		distributionFileWriter.append("\n\n");
-		String[] row4 = {"Size", "Occurrences" };
-		distributionFileWriter.append(String.join(",", row4));
-		distributionFileWriter.append("\n");
-		var dist = getSortedDistributionOccurencesDesc();
-    	for (Integer i : communityDistribution.keySet()) 
-    	{
-			String[] row = { i.toString(), communityDistribution.get(i).toString() };
-			distributionFileWriter.append(String.join(",", row));
-			distributionFileWriter.append("\n");
-		}
-    	distributionFileWriter.close();
+		// String distrinbutionFile = "Results/" + DATASET_NAME + "/" + "distribution_"+resultsFile + ".csv";
+    	// File distcsvfile = new File(distrinbutionFile);
+    	// FileWriter distributionFileWriter = new FileWriter(distcsvfile);
+		// String[] row1 = {"Average community size", Double.toString(avgCommMembers) };
+		// distributionFileWriter.append(String.join(",", row1));
+		// distributionFileWriter.append("\n");
+		// String[] row2 = {"Max community size", Integer.toString(maxCommSize) };
+		// distributionFileWriter.append(String.join(",", row2));
+		// distributionFileWriter.append("\n");
+		// String[] row3 = {"Min community size", Integer.toString(minCommSize) };
+		// distributionFileWriter.append(String.join(",", row3));
+		// distributionFileWriter.append("\n\n");
+		// String[] row4 = {"Size", "Occurrences" };
+		// distributionFileWriter.append(String.join(",", row4));
+		// distributionFileWriter.append("\n");
+		// var dist = getSortedDistributionOccurencesDesc();
+    	// for (Integer i : communityDistribution.keySet()) 
+    	// {
+		// 	String[] row = { i.toString(), communityDistribution.get(i).toString() };
+		// 	distributionFileWriter.append(String.join(",", row));
+		// 	distributionFileWriter.append("\n");
+		// }
+    	// distributionFileWriter.close();
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-		String commFile = "Results/" + DATASET_NAME + "/" + "communities_"+resultsFile + ".csv";
-    	File cmmcsvfile = new File(commFile);
-    	FileWriter commFileWriter = new FileWriter(cmmcsvfile);
-		String[] row6 = {"Node", "Community" };
-		commFileWriter.append(String.join(",", row6));
-		commFileWriter.append("\n");
-		for (int i = 0; i < VERTICES_COUNT; i++) 
-        {
-			var comm = "";
-			if (communities[i] != null)
-				comm = communities[i].toString();
-			String[] row = { Integer.toString(i), comm };
-			commFileWriter.append(String.join(",", row));
-			commFileWriter.append("\n");
-        }
-    	commFileWriter.close();
+	// 	String commFile = "Results/" + DATASET_NAME + "/" + "communities_"+resultsFile + ".csv";
+    // 	File cmmcsvfile = new File(commFile);
+    // 	FileWriter commFileWriter = new FileWriter(cmmcsvfile);
+	// 	String[] row6 = {"Node", "Community" };
+	// 	commFileWriter.append(String.join(",", row6));
+	// 	commFileWriter.append("\n");
+	// 	for (int i = 0; i < VERTICES_COUNT; i++) 
+    //     {
+	// 		var comm = "";
+	// 		if (communities[i] != null)
+	// 			comm = communities[i].toString();
+	// 		String[] row = { Integer.toString(i), comm };
+	// 		commFileWriter.append(String.join(",", row));
+	// 		commFileWriter.append("\n");
+    //     }
+    // 	commFileWriter.close();
 	}
 
 	private void writeCommunitiesToFile() throws IOException 

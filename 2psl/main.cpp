@@ -94,8 +94,6 @@ void start_partitioning(Globals &globals, TwoPhasePartitioner &partitioner, std:
 
             // get qscores of the communities
             quality_scores = streamcom.get_quality_scores();
-            
-            LOG(INFO) << "OK2.1";
         }
         else 
         {

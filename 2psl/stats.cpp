@@ -61,7 +61,7 @@ void Stats::compute_and_print_stats()
     uint64_t total_load = 0;
     for (size_t i = 0; i < machine_edge_loads.size(); i++)
     {
-        LOG(INFO) << "load in partition " << i << ": " << machine_edge_loads[i];
+        //LOG(INFO) << "load in partition " << i << ": " << machine_edge_loads[i];
         total_load += machine_edge_loads[i];
         if (max_edge_load < machine_edge_loads[i])
         {

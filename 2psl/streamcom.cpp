@@ -24,7 +24,13 @@ Streamcom::Streamcom(const Globals &GLOBALS) : globals(const_cast<Globals &>(GLO
     }
     next_community_id = 1;
 
-    test_dataset = "dblp_dataset_shuffled";
+    test_dataset = "journal_dataset";
+
+    // dataset_file.open("../Converted_datasets/"+test_dataset+".csv");
+    // if (!dataset_file.is_open()) { // check if file was opened successfully
+    //         LOG(INFO) << "OK ERR";
+    // }
+
     // std::string str = FLAGS_filename;
     // std::string delimiter = "/";
     // std::string token = str.substr(str.find_last_of(delimiter) + 1);
@@ -93,30 +99,22 @@ std::vector<uint32_t> Streamcom::find_communities()
         case 1:
             globals.read_and_do(find_com_forwarder, this, "communities");
             break;
-        // default:
-        //     globals.read_and_do(find_com_forwarder, this, "communities");
-        //     if (globals.CLUSTER_QUALITY_EVAL){
-        //     	evaluate_communities();
-        //     }
-        //     globals.read_and_do(find_com_forwarder, this, "communities");
-        //     for (int i = 3; i <= FLAGS_str_iters; i++)
-        //     {
-        //        	if (globals.CLUSTER_QUALITY_EVAL)
-        //         {
-        //             evaluate_communities();
-        //         }
-        //     	globals.read_and_do(find_com_forwarder, this, "communities");
-        //     }
-        //     break;
+        default:
+            globals.read_and_do(find_com_forwarder, this, "communities");
+            if (globals.CLUSTER_QUALITY_EVAL){
+            	evaluate_communities();
+            }
+            globals.read_and_do(find_com_forwarder, this, "communities");
+            for (int i = 3; i <= FLAGS_str_iters; i++)
+            {
+               	if (globals.CLUSTER_QUALITY_EVAL)
+                {
+                    evaluate_communities();
+                }
+            	globals.read_and_do(find_com_forwarder, this, "communities");
+            }
+            break;
     }
-
-    // for (uint32_t i = 0; i < globals.NUM_VERTICES; i++) 
-    // {
-    //     LOG(INFO) << "Node " << i << " community " << communities[i];
-    //     if (i > 50)
-    //         break;
-    // }
-
     return communities;
 }
 
@@ -183,10 +181,8 @@ void Streamcom::do_read_comms()
 
 void Streamcom::do_streamcom(std::vector<edge_t> &edges)
 {
-    // std::ofstream dataset_file("../Converted_datasets/"+test_dataset+".csv");
-    // if (!dataset_file.is_open()) { // check if file was opened successfully
-    //     std::cerr << "Error: Could not open file" << std::endl;
-    // }
+
+
 
     for (auto& edge : edges)
     {
@@ -194,7 +190,7 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
         auto v = edge.second;
 
         // -------------------write edges to file--------------------
-        //dataset_file << u << "," << v << std::endl;;
+           // dataset_file << u << "," << v << std::endl;;
         //--------------------end------------------------------------
 
         auto& com_u = communities[u];
@@ -256,7 +252,7 @@ void Streamcom::do_streamcom(std::vector<edge_t> &edges)
            // }
         }
     }
-       //   dataset_file.close();
+   //  dataset_file.close();
 
 }
 

@@ -9,31 +9,34 @@ public class Clustering2PSL
 {       
     public static int MAX_COM_VOLUME;
     public static Integer[] degrees;
-    public static Integer[] communities;;
+    public static Integer[] communities;
     public static Integer[] communityVolumes;
     public static int maxCommunityId = 1;
     public static long communitiesCalcDuration;
     public static long totalDuration;
     public static long degreeCalcDuration;
-
+    public static Integer[] NUM_PARTITIONS = {4, 6, 12, 16, 32, 50, 80, 128, 200, 256};
     public static void main(String args[]) throws IOException   
     {   
-        Instant start = Instant.now();
-        MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/Utils.NUM_PARTITIONS;
-        initCommunities();
-        Instant startDegreeCalc = Instant.now();
-        calcDegrees();
-        Instant finishDegreeCalc = Instant.now();
-        degreeCalcDuration = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
-        Instant startCommunitiesCalc = Instant.now();
-        findCommunities();
-        //findCommunities(); 
-        Instant finishCommunitiesCalc = Instant.now();
-        communitiesCalcDuration = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
-        Instant finish = Instant.now();
-        totalDuration = Duration.between(start, finish).toMillis();    
-        Utils utils = new Utils("results_2psl", 2*Utils.EDGES_COUNT, totalDuration, degreeCalcDuration, communities, degrees);
-        utils.Evaluate();
+        for (int i = 0; i < NUM_PARTITIONS.length; i++) 
+        {   
+            maxCommunityId = 1;
+            Instant start = Instant.now();
+            MAX_COM_VOLUME = 2*Utils.EDGES_COUNT/NUM_PARTITIONS[i];
+            initCommunities();
+            Instant startDegreeCalc = Instant.now();
+            calcDegrees();
+            Instant finishDegreeCalc = Instant.now();
+            degreeCalcDuration = Duration.between(startDegreeCalc, finishDegreeCalc).toMillis(); 
+            Instant startCommunitiesCalc = Instant.now();
+            findCommunities();
+            Instant finishCommunitiesCalc = Instant.now();
+            communitiesCalcDuration = Duration.between(startCommunitiesCalc, finishCommunitiesCalc).toMillis();  
+            Instant finish = Instant.now();
+            totalDuration = Duration.between(start, finish).toMillis();    
+            Utils utils = new Utils("results_2psl", 2*Utils.EDGES_COUNT, totalDuration, degreeCalcDuration, communities, degrees, NUM_PARTITIONS[i]);
+            utils.Evaluate();
+        }
     }   
 
     private static void initCommunities() {
@@ -60,11 +63,12 @@ public class Clustering2PSL
                 var v = Integer.parseInt(edge[1]);
                 findEdgeCommunity(w, v);
             }  
+            br.close();
         }   
         catch (IOException e)   
         {  
             e.printStackTrace();  
-        }   
+        }  
     }
 
     public static void findEdgeCommunity(int u, int v)

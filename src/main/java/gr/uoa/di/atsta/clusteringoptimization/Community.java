@@ -5,14 +5,15 @@ import java.util.*;
 public class Community 
 {
     public int id;
-    public int volume;
-    public double score;
+    public int edges;
     public Map<Integer, Double> members;
+    public double score;
+    public List<Entry<Integer, Double>> sortedmembers; 
 
     public Community(int id)
     {
         this.id = id;
-        this.volume = 0;
+        this.edges = 0;
         this.score = 0;
         this.members = new HashMap<Integer, Double>();
     }
@@ -51,14 +52,10 @@ public class Community
 		return sorted;
 	}
 
-	public double getTotalValue() 
+    public void sortCommMembers()
     {
-		double total = 0.0;
-		for(double value : this.members.values()) {
-			total += value;
-		}
-		return total;
-	}
+        this.sortedmembers = this.getSortedCommunity();
+    }
 
     public void calculateCommunityScore(int MAX_COM_VOLUME) 
     {

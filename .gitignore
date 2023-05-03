@@ -92,4 +92,4 @@ Vagrantfile
 *.txt
 *.txt.degree
 *.txt.binedgelist
-
+*.shuffled.binedgelist
