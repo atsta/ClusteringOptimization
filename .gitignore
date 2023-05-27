@@ -76,7 +76,8 @@ nb-configuration.xml
 ## Visual Studio Code
 ##############################
 .vscode/
-.code-workspace
+.code-workspaces
+.vs/
 
 ##############################
 ## OS X
@@ -93,3 +94,10 @@ Vagrantfile
 *.txt.degree
 *.txt.binedgelist
 *.shuffled.binedgelist
+
+.classpath
+*.xml
+
+2psl/
+Results/
+Datasets/

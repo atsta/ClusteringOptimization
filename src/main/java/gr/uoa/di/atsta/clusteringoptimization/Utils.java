@@ -15,9 +15,9 @@ import java.util.Map.Entry;
 
 public final class Utils 
 {
-    // public final static int VERTICES_COUNT = 334822;
-    // public final static int EDGES_COUNT = 924923;
-	// public static String DATASET_NAME = "amazon_dataset";
+    public final static int VERTICES_COUNT = 334822;
+    public final static int EDGES_COUNT = 924923;
+	public static String DATASET_NAME = "amazon_dataset";
 
     // public final static int VERTICES_COUNT = 317054;
     // public final static int EDGES_COUNT = 1049008;
@@ -27,9 +27,9 @@ public final class Utils
     // public final static int EDGES_COUNT = 2986943;
 	// public static String DATASET_NAME = "youtube_dataset";
 
-    public final static int VERTICES_COUNT = 3997697;
-    public final static int EDGES_COUNT = 34680452;
-	public static String DATASET_NAME = "journal_dataset";
+    // public final static int VERTICES_COUNT = 3997697;
+    // public final static int EDGES_COUNT = 34680452;
+	// public static String DATASET_NAME = "journal_dataset";
 
 	public String resultsFile;
 	public int denominatorFactor;
